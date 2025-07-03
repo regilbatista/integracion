@@ -1,0 +1,30 @@
+{
+  "name": "apiapp",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "rent ./test/unit",
+    "start": "node src/index.js",
+    "dev": "set DEV=true && nodemon -L src/index.js",
+    "dev2": "set DEV=true && nodemon -L -r dotenv/config src/index.js"
+  },
+  "author": "regilbatista",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "nodemon": "^3.1.9"
+  },
+  "dependencies": {
+    "body-parser": "^1.20.3",
+    "compression": "^1.7.5",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "http": "^0.0.1-security",
+    "jsonwebtoken": "^9.0.2",
+    "morgan": "^1.10.0",
+    "mysql2": "^3.12.0",
+    "sequelize": "^6.37.5",
+    "socket.io": "^4.8.1"
+  }
+}
