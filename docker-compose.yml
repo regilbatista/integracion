@@ -1,0 +1,92 @@
+services:
+  next-app:
+    container_name: contabilidad-dashboard-dev
+    image: contabilidad-api-dev
+    build:
+      context: ./ContabilidadApp
+      dockerfile: dev.Dockerfile
+    environment:
+      - CLIENT_SIDE_DEV_API_URL=http://localhost:3001
+      - WATCHPACK_POLLING=true
+    volumes:
+      - ./ContabilidadApp/pages:/app/pages
+      - ./ContabilidadApp/public:/app/public
+      - ./ContabilidadApp/store:/app/store
+      - ./ContabilidadApp/styles:/app/styles
+      - ./ContabilidadApp/components:/app/components
+    restart: always
+    ports:
+      - 3000:3000
+    depends_on:
+      - node-app
+    networks:
+      - my_network
+
+  node-app:
+    container_name: contabilidad-api-dev
+    image: contabilidad-api-dev
+    build:
+      context: ./ApiContabilidad
+      dockerfile: dev.Dockerfile
+    environment:
+      DBHOST: 'mariaNet'
+      DBPASS: 'hola1234'
+      DBUSER: 'root'
+      DBNAME: 'db_api'
+      URL_REDIRECT: 'http://localhost:3001/v1/redirect'
+      URL_REDIRECT_OUT: 'http://localhost:3000/auth'
+    volumes:
+      - ./ApiContabilidad/src:/app/src
+    restart: always
+    ports:
+      - 3001:3001
+    depends_on:
+      - database
+    networks:
+      - my_network
+        # aliases:
+       
+
+  database:
+    image: mariadb:10.10
+    container_name: mariadb
+    ports:
+      - 3306:3306
+    environment:
+      MYSQL_ROOT_PASSWORD: "hola1234"
+    volumes:
+      - db-data:/var/lib/mysql
+      - ./sql_scripts/scripts_db.sql:/docker-entrypoint-initdb.d/scripts_db.sql
+    restart: always
+    networks:
+      my_network:
+        aliases:
+          - mariaNet
+
+  # web:
+  #   image: nginx
+  #   volumes:
+  #     - ./templates:/etc/nginx/templates
+  #     - ./nginxconf:/etc/nginx/conf.d
+  #   ports:
+  #     - "80:80"
+  #   environment:
+  #     - NGINX_HOST=localhost
+  #     - NGINX_PORT=80
+  #   restart: always
+  #   networks:
+  #     - my_network
+
+      # app_network:
+        # aliases:
+        #   - mariadb_host
+
+volumes:
+  db-data:
+
+networks:
+  my_network:
+    name: my_network_net
+    driver: bridge
+    ipam:
+      driver: default
