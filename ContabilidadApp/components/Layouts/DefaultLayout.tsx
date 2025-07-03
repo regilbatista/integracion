@@ -10,7 +10,7 @@ import Setting from './Setting';
 import Portals from '../../components/Portals';
 import { useRouter } from 'next/router';
 import { getToken } from '../../utils/auth';
-import { useAuth } from '../../src/context/authContext';
+import { useAuth } from '@/src/context/authContext';
 import { getUserFromStorage } from '@/utils/auth';
 import { showUnauthorized }from '@/utils/auth'
 
