@@ -4,12 +4,6 @@ const { verifyAuthorization } = require('../middlewares/verify');
 /**
  * @swagger
  * tags:
- *   - name: Clientes
- *     description: Gestión de clientes
- *   - name: Renta y Devolución
- *     description: Gestión de rentas de vehículos
- *   - name: Inspección
- *     description: Inspección de vehículos
  *   - name: Consultas Contables
  *     description: Consultas del sistema contable para usuarios
  */

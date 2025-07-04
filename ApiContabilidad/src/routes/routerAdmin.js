@@ -6,18 +6,6 @@ const { verifyAuthorization } = require('../middlewares/verify');
  * tags:
  *   - name: Usuarios
  *     description: Gestión de usuarios del sistema
- *   - name: Empleados
- *     description: Gestión de empleados
- *   - name: Marcas
- *     description: Gestión de marcas de vehículos
- *   - name: Modelos
- *     description: Gestión de modelos de vehículos
- *   - name: Tipos de Combustible
- *     description: Gestión de tipos de combustible
- *   - name: Tipos de Vehículos
- *     description: Gestión de tipos de vehículos
- *   - name: Vehículos
- *     description: Gestión de vehículos
  *   - name: Tipos de Cuenta
  *     description: Gestión de tipos de cuenta contable
  *   - name: Tipos de Moneda
@@ -42,10 +30,10 @@ const auxiliares = require('../controllers/auxiliares');
 const entradasContables = require('../controllers/entradasContables');
 const webServices = require('../controllers/webServices');
 const logsWebServices = require('../controllers/logsWebServices');
-
+const users = require('../controllers/users');
 
 // ===============================================
-// NEW ACCOUNTING SYSTEM ROUTES
+// ACCOUNTING SYSTEM ROUTES
 // ===============================================
 
 // Basic accounting configuration
@@ -62,5 +50,8 @@ router.use('/entradasContables/', entradasContables);
 // Web services and audit logs
 router.use('/webServices/', webServices);
 router.use('/logsWebServices/', logsWebServices);
+
+// User management
+router.use('/users/', users);
 
 module.exports = router;

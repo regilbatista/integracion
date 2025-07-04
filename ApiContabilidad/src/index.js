@@ -58,7 +58,7 @@ app.use(express.urlencoded({ extended: false }));
 // Apply token verification middleware at a higher level
 // Router -- API Versions
 app.use('/api/', routerAuth);
-app.use('/api/admin',verifyToken, routerAdmin);
+app.use('/api/admin', routerAdmin);
 app.use('/api/', verifyToken, router);
 
 // Server

@@ -1,15 +1,16 @@
-module.exports = (sequelize, type) => {
+module.exports = (sequelize, DataTypes) => { // CORREGIDO: usar DataTypes
     return sequelize.define('Estados', {
         id: {
-            type: type.INTEGER,
+            type: DataTypes.INTEGER, // CORREGIDO: usar DataTypes
             primaryKey: true,
             autoIncrement: true,
         },
         descripcion: {
-            type: type.STRING(100),
+            type: DataTypes.STRING(100), // CORREGIDO: usar DataTypes
             allowNull: false,
         },
     }, {
+        tableName: 'Estados',
         timestamps: false,
     })
 };

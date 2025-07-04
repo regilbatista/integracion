@@ -5,7 +5,7 @@ const options = {
   definition: {
     openapi: '3.0.0',
     info: {
-      title: ' Accounting API',
+      title: 'Accounting API',
       version: '1.0.0',
       description: 'API para sistema de contabilidad',
       contact: {
@@ -216,10 +216,14 @@ const options = {
       },
     ],
   },
-  apis: ['./routes/*.js', './controllers/*.js'], // Rutas donde están los comentarios de Swagger
+  apis: ['./src/controllers/*.js', './src/routes/*.js'], // Rutas donde están los comentarios de Swagger
 };
 
 const specs = swaggerJSDoc(options);
+
+// Debug: Verificar si se están cargando las rutas
+console.log('Swagger spec paths:', Object.keys(specs.paths || {}));
+console.log('Total de rutas encontradas:', Object.keys(specs.paths || {}).length);
 
 module.exports = (app) => {
   app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs, {

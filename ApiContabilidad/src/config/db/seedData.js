@@ -6,8 +6,8 @@ module.exports = InitializePrimalData = async ({ Md }) => {
     ];
 
     let rolesData = [
-        { id: 1, name: 'user' , descripcion:'Normal User' , estado_Id: 1 },
-        { id: 2, name: 'admin' , descripcion:'Admin User' , estado_Id: 1 },
+        { id: 1, nombreRol: 'user' , estado_Id: 1 },
+        { id: 2, nombreRol: 'admin' , estado_Id: 1 },
     ];
 
      let usersData = [
