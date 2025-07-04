@@ -1,20 +1,26 @@
-module.exports = (sequelize, type) => {
+module.exports = (sequelize, DataTypes) => {
     return sequelize.define('Usuarios', {
         id: {
-            type: type.INTEGER,
+            type: DataTypes.INTEGER,
             primaryKey: true,
             autoIncrement: true,
         },
-        user: {
-            type: type.STRING(50),
+        usuario: {
+            type: DataTypes.STRING(50),
             allowNull: false,
             unique: true,
         },
-        estado_Id: {
-            type: type.INTEGER,
+        rol_Id: {
+            type: DataTypes.INTEGER,
             allowNull: false,
         },
+        estado_Id: {
+            type: DataTypes.INTEGER,
+            allowNull: false,
+            defaultValue: 1,
+        },
     }, {
+        tableName: 'Usuarios',
         timestamps: false,
-    })
+    });
 };

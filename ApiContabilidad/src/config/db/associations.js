@@ -1,100 +1,89 @@
-module.exports = Associations = (Models) => {
+module.exports = NewAssociations = (Models) => {
   const {
     Estados,
-    Marcas,
-    Modelos,
-    Roles,
-    TiposCombustibles,
-    TiposVehiculos,
     Users,
-    Vehiculos,
-    Authorization,
-    Clientes,
-    Empleados,
-    Inspeccion,
-    RentaDevolucion,
+    Auxiliares,
+    CatalogoCuentasContables,
+    EntradasContables,
+    LogsWebServices,
+    PassAuthorization,
+    Roles,
+    TiposCuenta,
+    TiposMoneda,
+    WebServices,
   } = Models;
 
-  /* Relaciones entre Usuarios y Authorization */
-  Authorization.belongsTo(Users, { foreignKey: "user_Id" });
-  Users.hasMany(Authorization, { foreignKey: "id" });
+  /* =============================================== */
+  /* ASOCIACIONES DE LOS NUEVOS MODELOS CONTABLES */
+  /* =============================================== */
 
-  /* Relaciones entre Usuarios y Estados */
-  Users.belongsTo(Estados, { foreignKey: "estado_Id" });
-  Estados.hasMany(Users, { foreignKey: "estado_Id" });
+  /* Relaciones entre Estados y Auxiliares */
+  Auxiliares.belongsTo(Estados, { foreignKey: "estado_Id" });
+  Estados.hasMany(Auxiliares, { foreignKey: "estado_Id" });
 
-  /* Relaciones entre Usuarios y Empleados */
-  Users.belongsTo(Empleados, { foreignKey: "id" });
-  Empleados.hasOne(Users, { foreignKey: "user_Id" });
+  /* Relaciones entre Estados y TiposCuenta */
+  TiposCuenta.belongsTo(Estados, { foreignKey: "estado_Id" });
+  Estados.hasMany(TiposCuenta, { foreignKey: "estado_Id" });
 
-  /* Relaciones entre Estados y Clientes */
-  Clientes.belongsTo(Estados, { foreignKey: "estado_Id" });
-  Estados.hasMany(Clientes, { foreignKey: "estado_Id" });
+  /* Relaciones entre Estados y TiposMoneda */
+  TiposMoneda.belongsTo(Estados, { foreignKey: "estado_Id" });
+  Estados.hasMany(TiposMoneda, { foreignKey: "estado_Id" });
 
-  /* Relaciones entre Estados y Vehículos */
-  Vehiculos.belongsTo(Estados, { foreignKey: "estado_Id" });
-  Estados.hasMany(Vehiculos, { foreignKey: "estado_Id" });
+  /* Relaciones entre TiposCuenta y CatalogoCuentasContables */
+  CatalogoCuentasContables.belongsTo(TiposCuenta, { foreignKey: "tipoCuenta_Id" });
+  TiposCuenta.hasMany(CatalogoCuentasContables, { foreignKey: "tipoCuenta_Id" });
 
-  /* Relaciones entre Roles y Usuarios */
+  /* Relaciones entre Estados y CatalogoCuentasContables */
+  CatalogoCuentasContables.belongsTo(Estados, { foreignKey: "estado_Id" });
+  Estados.hasMany(CatalogoCuentasContables, { foreignKey: "estado_Id" });
+
+  /* Relación jerárquica en CatalogoCuentasContables (cuenta mayor - subcuentas) */
+  CatalogoCuentasContables.belongsTo(CatalogoCuentasContables, { 
+    foreignKey: "cuentaMayor_Id", 
+    as: "CuentaMayor" 
+  });
+  CatalogoCuentasContables.hasMany(CatalogoCuentasContables, { 
+    foreignKey: "cuentaMayor_Id", 
+    as: "SubCuentas" 
+  });
+
+  /* Relaciones entre EntradasContables y Auxiliares */
+  EntradasContables.belongsTo(Auxiliares, { foreignKey: "auxiliar_Id" });
+  Auxiliares.hasMany(EntradasContables, { foreignKey: "auxiliar_Id" });
+
+  /* Relaciones entre EntradasContables y CatalogoCuentasContables */
+  EntradasContables.belongsTo(CatalogoCuentasContables, { foreignKey: "cuenta_Id" });
+  CatalogoCuentasContables.hasMany(EntradasContables, { foreignKey: "cuenta_Id" });
+
+  /* Relaciones entre EntradasContables y Estados */
+  EntradasContables.belongsTo(Estados, { foreignKey: "estado_Id" });
+  Estados.hasMany(EntradasContables, { foreignKey: "estado_Id" });
+
+  /* Relaciones entre LogsWebServices y WebServices */
+  LogsWebServices.belongsTo(WebServices, { foreignKey: "webService_Id" });
+  WebServices.hasMany(LogsWebServices, { foreignKey: "webService_Id" });
+
+  /* Relaciones entre LogsWebServices y Users */
+  LogsWebServices.belongsTo(Users, { foreignKey: "usuario_Id" });
+  Users.hasMany(LogsWebServices, { foreignKey: "usuario_Id" });
+
+  /* Relaciones entre PassAuthorization y Users */
+  PassAuthorization.belongsTo(Users, { foreignKey: "usuario_Id" });
+  Users.hasMany(PassAuthorization, { foreignKey: "usuario_Id" });
+
+  /* Relaciones entre PassAuthorization y Estados */
+  PassAuthorization.belongsTo(Estados, { foreignKey: "estado_Id" });
+  Estados.hasMany(PassAuthorization, { foreignKey: "estado_Id" });
+  
+   /* Relaciones entre Roles y Estados */
+  Roles.belongsTo(Estados, { foreignKey: "estado_Id" });
+  Estados.hasMany(Roles, { foreignKey: "estado_Id" });
+
+  /* Relaciones entre Roles y Users */
   Users.belongsTo(Roles, { foreignKey: "rol_Id" });
   Roles.hasMany(Users, { foreignKey: "rol_Id" });
 
-    /* Relaciones entre marca y Modelos */
-    Modelos.belongsTo(Marcas, { foreignKey: "marca_Id" });
-    Marcas.hasMany(Modelos, { foreignKey: "marca_Id" });
-
-  /* Relaciones entre Vehículos y Tipos de Vehículos */
-  Vehiculos.belongsTo(TiposVehiculos, { foreignKey: "tipoVehiculo_Id" });
-  TiposVehiculos.hasMany(Vehiculos, { foreignKey: "tipoVehiculo_Id" });
-
-  /* Relaciones entre Vehículos y Marcas */
-  Vehiculos.belongsTo(Marcas, { foreignKey: "marca_Id" });
-  Marcas.hasMany(Vehiculos, { foreignKey: "marca_Id" });
-
-  /* Relaciones entre Vehículos y Modelos */
-  Vehiculos.belongsTo(Modelos, { foreignKey: "modelo_Id" });
-  Modelos.hasMany(Vehiculos, { foreignKey: "modelo_Id" });
-
-  /* Relaciones entre Vehículos y Tipos de Combustible */
-  Vehiculos.belongsTo(TiposCombustibles, { foreignKey: "tipoCombustible_Id" });
-  TiposCombustibles.hasMany(Vehiculos, { foreignKey: "tipoCombustible_Id" });
-
-  /* Relaciones entre Empleados y Estados */
-  Empleados.belongsTo(Estados, { foreignKey: "estado_Id" });
-  Estados.hasMany(Empleados, { foreignKey: "estado_Id" });
-
-  /* Relaciones entre Inspección y Vehículos */
-  Inspeccion.belongsTo(Vehiculos, { foreignKey: "vehiculo_Id" });
-  Vehiculos.hasMany(Inspeccion, { foreignKey: "vehiculo_Id" });
-
-  /* Relaciones entre Inspección y Clientes */
-  Inspeccion.belongsTo(Clientes, { foreignKey: "cliente_Id" });
-  Clientes.hasMany(Inspeccion, { foreignKey: "cliente_Id" });
-
-  /* Relaciones entre Inspección y Empleados */
-  Inspeccion.belongsTo(Empleados, { foreignKey: "empleado_Id" });
-  Empleados.hasMany(Inspeccion, { foreignKey: "empleado_Id" });
-
-  /* Relaciones entre Inspección y Estados */
-  Inspeccion.belongsTo(Estados, { foreignKey: "estado_Id" });
-  Estados.hasMany(Inspeccion, { foreignKey: "estado_Id" });
-
-  RentaDevolucion.hasOne(Inspeccion, { foreignKey: "rentaDevolucion_Id" });
-  Inspeccion.belongsTo(RentaDevolucion, { foreignKey: "rentaDevolucion_Id" });
-
-  /* Relaciones entre Renta y Devolución con Empleados */
-  RentaDevolucion.belongsTo(Empleados, { foreignKey: "empleado_Id" });
-  Empleados.hasMany(RentaDevolucion, { foreignKey: "empleado_Id" });
-
-  /* Relaciones entre Renta y Devolución con Vehículos */
-  RentaDevolucion.belongsTo(Vehiculos, { foreignKey: "vehiculo_Id" });
-  Vehiculos.hasMany(RentaDevolucion, { foreignKey: "vehiculo_Id" });
-
-  /* Relaciones entre Renta y Devolución con Clientes */
-  RentaDevolucion.belongsTo(Clientes, { foreignKey: "cliente_Id" });
-  Clientes.hasMany(RentaDevolucion, { foreignKey: "cliente_Id" });
-
-  /* Relaciones entre Renta y Devolución con Estados */
-  RentaDevolucion.belongsTo(Estados, { foreignKey: "estado_Id" });
-  Estados.hasMany(RentaDevolucion, { foreignKey: "estado_Id" });
+  /* Relaciones entre Users y Estados */
+  Users.belongsTo(Estados, { foreignKey: "estado_Id" });
+  Estados.hasMany(Users, { foreignKey: "estado_Id" });
 };

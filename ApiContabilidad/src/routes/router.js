@@ -1,18 +1,27 @@
 const router = require('express').Router();
 const { verifyAuthorization } = require('../middlewares/verify');
 
-// Import files
+/**
+ * @swagger
+ * tags:
+ *   - name: Clientes
+ *     description: Gestión de clientes
+ *   - name: Renta y Devolución
+ *     description: Gestión de rentas de vehículos
+ *   - name: Inspección
+ *     description: Inspección de vehículos
+ *   - name: Consultas Contables
+ *     description: Consultas del sistema contable para usuarios
+ */
 
-const clientes = require('../controllers/clientes');
-const rentaDevolucion = require('../controllers/rentaDevolucion');
-const inspection = require('../controllers/inspeccion');
+// Import accounting controllers for user access (read-only)
+const catalogoCuentasContables = require('../controllers/catalogoCuentasContables');
+const auxiliares = require('../controllers/auxiliares');
+const entradasContables = require('../controllers/entradasContables');
 
-
-// Use routes
-router.use('/clientes/',  clientes);
-router.use('/rentadevolucion/',  rentaDevolucion);
-router.use('/inspeccion/',  inspection);
-
-
+// Accounting routes (read-only access for regular users)
+router.use('/catalogoCuentas/', catalogoCuentasContables);
+router.use('/auxiliares/', auxiliares);
+router.use('/entradasContables/', entradasContables);
 
 module.exports = router;

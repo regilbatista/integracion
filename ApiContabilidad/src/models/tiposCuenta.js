@@ -1,14 +1,17 @@
 module.exports = (sequelize, DataTypes) => {
-    return sequelize.define('Roles', {
+    return sequelize.define('TiposCuenta', {
         id: {
             type: DataTypes.INTEGER,
             primaryKey: true,
             autoIncrement: true,
         },
-        nombreRol: {
-            type: DataTypes.STRING(50),
+        descripcion: {
+            type: DataTypes.STRING(100),
             allowNull: false,
-            unique: true,
+        },
+        origen: {
+            type: DataTypes.ENUM('DB', 'CR'),
+            allowNull: false,
         },
         estado_Id: {
             type: DataTypes.INTEGER,
@@ -16,7 +19,7 @@ module.exports = (sequelize, DataTypes) => {
             defaultValue: 1,
         },
     }, {
-        tableName: 'Roles',
+        tableName: 'TiposCuenta',
         timestamps: false,
     });
 };

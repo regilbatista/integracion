@@ -1,7 +1,7 @@
 services:
   next-app:
     container_name: contabilidad-dashboard-dev
-    image: contabilidad-api-dev
+    image: contabilidad-dashboard-dev
     build:
       context: ./ContabilidadApp
       dockerfile: dev.Dockerfile
@@ -9,11 +9,17 @@ services:
       - CLIENT_SIDE_DEV_API_URL=http://localhost:3001
       - WATCHPACK_POLLING=true
     volumes:
+      # Mount all necessary directories
       - ./ContabilidadApp/pages:/app/pages
       - ./ContabilidadApp/public:/app/public
       - ./ContabilidadApp/store:/app/store
       - ./ContabilidadApp/styles:/app/styles
       - ./ContabilidadApp/components:/app/components
+      - ./ContabilidadApp/src:/app/src
+      - ./ContabilidadApp/utils:/app/utils
+      - ./ContabilidadApp/tsconfig.json:/app/tsconfig.json
+      - ./ContabilidadApp/next.config.js:/app/next.config.js
+      - ./ContabilidadApp/package.json:/app/package.json
     restart: always
     ports:
       - 3000:3000
@@ -29,60 +35,95 @@ services:
       context: ./ApiContabilidad
       dockerfile: dev.Dockerfile
     environment:
-      DBHOST: 'mariaNet'
-      DBPASS: 'hola1234'
-      DBUSER: 'root'
-      DBNAME: 'db_api'
+      DBHOST: 'sqlserver'
+      DBPASS: 'hola1234!'
+      DBUSER: 'sa'
+      DBNAME: 'contabilidad_api'
       URL_REDIRECT: 'http://localhost:3001/v1/redirect'
       URL_REDIRECT_OUT: 'http://localhost:3000/auth'
     volumes:
       - ./ApiContabilidad/src:/app/src
+      - ./ApiContabilidad/package.json:/app/package.json
+      - ./ApiContabilidad/tsconfig.json:/app/tsconfig.json
     restart: always
     ports:
       - 3001:3001
     depends_on:
-      - database
+      database:
+        condition: service_healthy
     networks:
       - my_network
-        # aliases:
-       
 
   database:
-    image: mariadb:10.10
-    container_name: mariadb
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sqlserver
     ports:
-      - 3306:3306
+      - 1433:1433
     environment:
-      MYSQL_ROOT_PASSWORD: "hola1234"
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "hola1234!"
+      MSSQL_PID: "Express"
     volumes:
-      - db-data:/var/lib/mysql
-      - ./sql_scripts/scripts_db.sql:/docker-entrypoint-initdb.d/scripts_db.sql
+      - sqlserver-data:/var/opt/mssql
+      - ./sql_scripts:/sql_scripts
     restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P 'hola1234!' -C -Q 'SELECT 1' || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 15
+      start_period: 30s
     networks:
       my_network:
         aliases:
-          - mariaNet
+          - sqlserver
 
-  # web:
-  #   image: nginx
-  #   volumes:
-  #     - ./templates:/etc/nginx/templates
-  #     - ./nginxconf:/etc/nginx/conf.d
-  #   ports:
-  #     - "80:80"
-  #   environment:
-  #     - NGINX_HOST=localhost
-  #     - NGINX_PORT=80
-  #   restart: always
-  #   networks:
-  #     - my_network
-
-      # app_network:
-        # aliases:
-        #   - mariadb_host
+  # Database initialization service
+  db-init:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: db-init
+    depends_on:
+      database:
+        condition: service_healthy
+    command: >
+      bash -c "
+        # Wait for SQL Server to be ready
+        echo 'Waiting for SQL Server to be ready...'
+        sleep 30
+        
+        # Test connection first
+        until /opt/mssql-tools18/bin/sqlcmd -S sqlserver -U sa -P 'hola1234!' -C -Q 'SELECT 1' > /dev/null 2>&1; do
+          echo 'Waiting for SQL Server...'
+          sleep 5
+        done
+        
+        echo 'SQL Server is ready, creating database...'
+        # Create database if it doesn't exist
+        /opt/mssql-tools18/bin/sqlcmd -S sqlserver -U sa -P 'hola1234!' -C -Q \"
+          IF NOT EXISTS (SELECT * FROM sys.databases WHERE name = 'contabilidad_api')
+          BEGIN
+            CREATE DATABASE contabilidad_api;
+            PRINT 'Database contabilidad_api created successfully';
+          END
+          ELSE
+          BEGIN
+            PRINT 'Database contabilidad_api already exists';
+          END
+        \"
+        
+        if [ \$? -eq 0 ]; then
+          echo 'Database initialization completed successfully'
+        else
+          echo 'Database initialization failed'
+          exit 1
+        fi
+      "
+    networks:
+      - my_network
+    restart: "no"
 
 volumes:
-  db-data:
+  sqlserver-data:
 
 networks:
   my_network:

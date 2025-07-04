@@ -1,6 +1,6 @@
 
 const db = {
-    dBName: process.env.DBNAME || 'db_api',
+    dBName: process.env.DBNAME || 'contabilidad_api',
     host: process.env.DBHOST,
     user: process.env.DBUSER,
     pass: process.env.DBPASS,
@@ -11,6 +11,6 @@ const tk ={
 };
 
 
-const secret = 'miFraseSuperSecretaApiRentCar';
+const secret = 'miFraseSuperSecretaApiContabilidad';
 
 module.exports = { secret, db, tk};

@@ -32,7 +32,7 @@ const Models = InitializeModels({ sequelize, Sequelize });
 // Initialization of Model Associations
 Associations(Models);
 
-const DBNAME = 'db_api'; // Cambiado para coincidir con el docker-compose
+const DBNAME = 'contabilidad_api'; // Cambiado para coincidir con el docker-compose
 
 // Sync tables to Database
 const ALTER_DB = false;

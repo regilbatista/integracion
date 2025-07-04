@@ -1,14 +1,17 @@
 module.exports = (sequelize, DataTypes) => {
-    return sequelize.define('Roles', {
+    return sequelize.define('TiposMoneda', {
         id: {
             type: DataTypes.INTEGER,
             primaryKey: true,
             autoIncrement: true,
         },
-        nombreRol: {
+        descripcion: {
             type: DataTypes.STRING(50),
             allowNull: false,
-            unique: true,
+        },
+        ultimaTasaCambiaria: {
+            type: DataTypes.DECIMAL(18, 6),
+            allowNull: false,
         },
         estado_Id: {
             type: DataTypes.INTEGER,
@@ -16,7 +19,7 @@ module.exports = (sequelize, DataTypes) => {
             defaultValue: 1,
         },
     }, {
-        tableName: 'Roles',
+        tableName: 'TiposMoneda',
         timestamps: false,
     });
 };

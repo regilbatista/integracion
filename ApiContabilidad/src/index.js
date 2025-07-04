@@ -7,6 +7,8 @@ const routerAuth = require('./routes/routerAuth');
 const routerAdmin = require('./routes/routerAdmin');
 const router = require('./routes/router.js');
 
+// Importar configuración de Swagger
+const swagger = require('./config/swagger.js');
 
 const { verifyToken, verifyAuthorization } = require('./middlewares/verify.js');
 
@@ -19,7 +21,8 @@ app.use(bodyParser.json({ limit: '50mb' }));
 // app.use(express.static('src/screens'));
 app.use(cookieParser());
 
-// swagger(app)
+// Configurar Swagger
+swagger(app);
 
 // if (process.env.DEV) {
 const morgan = require('morgan');
@@ -58,8 +61,8 @@ app.use('/api/', routerAuth);
 app.use('/api/admin',verifyToken, routerAdmin);
 app.use('/api/', verifyToken, router);
 
-
 // Server
 server.listen(app.get('port'), () => {
     console.log(app.get('appName'), ' running on port: ', app.get('port'));
+    console.log(`Swagger docs available at: http://localhost:${app.get('port')}/api-docs`);
 });
