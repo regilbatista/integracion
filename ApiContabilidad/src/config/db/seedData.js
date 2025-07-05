@@ -68,9 +68,10 @@ module.exports = InitializePrimalData = async ({ Md }) => {
         { id: 3, nombre: 'API_FACTURACION', descripcion: 'Servicio para facturación electrónica' },
     ];
 
+    // Datos de autorización de contraseña (123456)
     let passAuthorizationData = [
-        { id: 1, usuario_Id: 1, hash: '$2b$10$example.hash.for.admin.user.password', newPass: false, estado_Id: 1 },
-        { id: 2, usuario_Id: 2, hash: '$2b$10$example.hash.for.regular.user.password', newPass: false, estado_Id: 1 },
+        { id: 1, usuario_Id: 1, hash: '3ba4ecb6657ee75f2fe6.58808fd15dbad40491b26eae51c9eeca', newPass: false, estado_Id: 1 },
+        { id: 2, usuario_Id: 2, hash: '3ba4ecb6657ee75f2fe6.58808fd15dbad40491b26eae51c9eeca', newPass: false, estado_Id: 1 },
     ];
 
 
