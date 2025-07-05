@@ -62,7 +62,7 @@ const LoginCover = () => {
 
     return (
         <div className="flex min-h-screen">
-            <div className="hidden min-h-screen w-1/2 flex-col  items-center justify-center bg-gradient-to-t from-[#000000] to-[#bcbcbc] p-4 text-white dark:text-black lg:flex">
+            <div className="hidden min-h-screen w-1/2 flex-col  items-center justify-center bg-gradient-to-t from-[#256133] to-[#bcbcbc] p-4 text-white dark:text-black lg:flex">
                 <div className="mx-auto mb-5 w-full">
                     <img src="/assets/images/logoBlank.svg" alt="coming_soon" className="mx-auto lg:max-w-[370px] xl:max-w-[500px]" />
                 </div>

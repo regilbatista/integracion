@@ -75,7 +75,6 @@ module.exports = InitializePrimalData = async ({ Md }) => {
     ];
 
 
-
     await insertDb(Md.Estados, 'estadoData', estadoData);
     await insertDb(Md.Roles, 'rolesData', rolesData);
     await insertDb(Md.Users, 'usersData', usersData);
