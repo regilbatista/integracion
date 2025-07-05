@@ -73,6 +73,7 @@ router.get('/', async (req, res) => {
  *         required: true
  *         schema:
  *           type: integer
+ *         description: ID del usuario
  *     responses:
  *       200:
  *         description: Logs del usuario
@@ -116,6 +117,7 @@ router.get('/usuario/:userId', async (req, res) => {
  *         required: true
  *         schema:
  *           type: integer
+ *         description: ID del web service
  *     responses:
  *       200:
  *         description: Logs del web service
@@ -160,12 +162,14 @@ router.get('/servicio/:serviceId', async (req, res) => {
  *         schema:
  *           type: string
  *           format: date
+ *         description: Fecha de inicio del período
  *       - in: query
  *         name: fechaFin
  *         required: true
  *         schema:
  *           type: string
  *           format: date
+ *         description: Fecha de fin del período
  *     responses:
  *       200:
  *         description: Logs del período
@@ -204,6 +208,51 @@ router.get('/periodo', async (req, res) => {
     }
 });
 
+/**
+ * @swagger
+ * /api/admin/logsWebServices/{id}:
+ *   get:
+ *     summary: Obtiene un log de web service por ID
+ *     tags: [Logs Web Services]
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID del log
+ *     responses:
+ *       200:
+ *         description: Log encontrado
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: integer
+ *                   webService_Id:
+ *                     type: integer
+ *                   usuario_Id:
+ *                     type: integer
+ *                   fechaHora:
+ *                     type: string
+ *                     format: date-time
+ *                   parametrosEnviados:
+ *                     type: string
+ *                   respuesta:
+ *                     type: string
+ *       400:
+ *         description: Error en la solicitud
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
 router.get('/:id', async (req, res) => {
     try {
         const data = await LogsWebServices.findOne({
@@ -291,9 +340,75 @@ router.post('/', async (req, res) => {
     }
 });
 
-// Los logs generalmente no se actualizan, pero se incluye por completitud
+/**
+ * @swagger
+ * /api/admin/logsWebServices/{id}:
+ *   patch:
+ *     summary: Actualiza un log de web service
+ *     tags: [Logs Web Services]
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID del log a actualizar
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               webService_Id:
+ *                 type: integer
+ *                 description: Nuevo web service
+ *               usuario_Id:
+ *                 type: integer
+ *                 description: Nuevo usuario
+ *               parametrosEnviados:
+ *                 type: string
+ *                 description: Nuevos parámetros enviados
+ *               respuesta:
+ *                 type: string
+ *                 description: Nueva respuesta
+ *     responses:
+ *       200:
+ *         description: Log actualizado exitosamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Success'
+ *       400:
+ *         description: Error en la solicitud
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
 router.patch('/:id', async (req, res) => {
     try {
+        // Nota: Los logs generalmente no se actualizan por temas de auditoría
+        // Este endpoint se incluye por completitud del CRUD, pero considerar restricciones
+
+        // Validar web service si se está cambiando
+        if (req.body.webService_Id) {
+            const webService = await WebServices.findOne({ where: { id: req.body.webService_Id } });
+            if (!webService) {
+                return res.status(400).json([{ error: 'Web service not found' }]);
+            }
+        }
+
+        // Validar usuario si se está cambiando
+        if (req.body.usuario_Id) {
+            const user = await Users.findOne({ where: { id: req.body.usuario_Id } });
+            if (!user) {
+                return res.status(400).json([{ error: 'User not found' }]);
+            }
+        }
+
         await LogsWebServices.update(req.body, { where: { id: req.params.id } });
         res.status(200).json([{ msg: 'ok' }]);
     } catch (error) {
@@ -301,15 +416,50 @@ router.patch('/:id', async (req, res) => {
     }
 });
 
-// Los logs generalmente no se eliminan, pero se incluye por completitud
+/**
+ * @swagger
+ * /api/admin/logsWebServices/{id}:
+ *   delete:
+ *     summary: Elimina físicamente un log de web service
+ *     tags: [Logs Web Services]
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID del log
+ *     responses:
+ *       200:
+ *         description: Log eliminado exitosamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Success'
+ *       400:
+ *         description: Error en la solicitud
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
 router.delete('/:id', async (req, res) => {
     try {
         const log = await LogsWebServices.findOne({ where: { id: req.params.id } });
 
         if (!log) return res.status(200).json([{ error: 'id not found' }]);
 
+        // Nota: Los logs se eliminan físicamente, no lógicamente
+        // por temas de espacio y auditoría (se mantienen por período determinado)
         await log.destroy();
-        res.status(200).json([{ msg: 'ok' }]);
+
+        res.status(200).json([{ 
+            msg: 'ok', 
+            action: 'deleted',
+            note: 'Log permanently removed from database'
+        }]);
     } catch (error) {
         return res.status(400).json([{ error: error.toString() }]);
     }

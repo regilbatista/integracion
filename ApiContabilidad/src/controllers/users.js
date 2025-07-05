@@ -48,7 +48,7 @@ router.get('/', async (req, res) => {
                 let rol = await Roles.findOne({ where: { id: item.rol_Id } });
                 rol = JSON.parse(JSON.stringify(rol));
 
-                item.rol_Id = rol.nombreRol; // CORREGIDO: usar nombreRol
+                item.rol_Id = rol.nombreRol;
             })
         );
 
@@ -85,6 +85,46 @@ router.get('/roles', async (req, res) => {
     }
 });
 
+/**
+ * @swagger
+ * /api/admin/users/{id}:
+ *   get:
+ *     summary: Obtiene un usuario por ID
+ *     tags: [Usuarios]
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID del usuario
+ *     responses:
+ *       200:
+ *         description: Usuario encontrado
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: integer
+ *                   usuario:
+ *                     type: string
+ *                   rol_Id:
+ *                     type: string
+ *                   estado_Id:
+ *                     type: integer
+ *       400:
+ *         description: Error en la solicitud
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
 router.get('/:id', async (req, res) => {
     try {
         const data = await Users.findOne({
@@ -93,7 +133,6 @@ router.get('/:id', async (req, res) => {
 
         if (!data) return res.status(200).json({ data: 'data not found' });
         
-        // CORREGIDO: data es un objeto, no un array
         let rol = await Roles.findOne({ where: { id: data.rol_Id } });
         rol = JSON.parse(JSON.stringify(rol));
         
@@ -141,14 +180,14 @@ router.get('/:id', async (req, res) => {
  *         description: Usuario creado exitosamente
  */
 router.post('/', async (req, res) => {
-    const { usuario, rol_Id, estado_Id } = req.body; // CORREGIDO: usar 'usuario'
+    const { usuario, rol_Id, estado_Id } = req.body;
     let { password } = req.body;
   
-    const isnull = verifyNull({ usuario, password, estado_Id }); // CORREGIDO
+    const isnull = verifyNull({ usuario, password, estado_Id });
     if (isnull.sts) return res.status(400).json([{ error: isnull.key + ' is missing' }]);
   
     // Check if the user with the same email exists
-    if (await Users.findOne({ where: { usuario } })) { // CORREGIDO
+    if (await Users.findOne({ where: { usuario } })) {
       return res.status(400).json([{ error: 'User with same email already exists' }]);
     }
     try {
@@ -159,12 +198,12 @@ router.post('/', async (req, res) => {
           return res.status(400).json([{ error: 'Permissions not found or invalid' }]);
         }
         
-        const users = await Users.create({ usuario, rol_Id: rol, estado_Id }); // CORREGIDO
+        const users = await Users.create({ usuario, rol_Id: rol, estado_Id });
         if (!users) return res.status(400).json([{ error: 'User not created' }]);
       
         const passwordHash = createHash(password);
-        const auth = await PassAuthorization.create({ // CORREGIDO: usar PassAuthorization
-          usuario_Id: users.id, // CORREGIDO: usar usuario_Id
+        const auth = await PassAuthorization.create({
+          usuario_Id: users.id,
           hash: passwordHash,
           newPass: req.body?.newPass || null
         });
@@ -180,7 +219,53 @@ router.post('/', async (req, res) => {
         return res.status(400).json([{ error: error.toString() }]);
       }
   });
-  
+
+/**
+ * @swagger
+ * /api/admin/users/{id}:
+ *   patch:
+ *     summary: Actualiza un usuario
+ *     tags: [Usuarios]
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID del usuario a actualizar
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               usuario:
+ *                 type: string
+ *                 maxLength: 50
+ *                 description: Nuevo nombre de usuario
+ *               rol_Id:
+ *                 type: string
+ *                 description: Nuevo rol
+ *               estado_Id:
+ *                 type: integer
+ *                 description: Nuevo estado
+ *     responses:
+ *       200:
+ *         description: Usuario actualizado exitosamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Success'
+ *       400:
+ *         description: Error en la solicitud
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
 router.patch('/:id', async (req, res) => {
     try {
         await Users.update(req.body, { where: { id: req.params.id } });
@@ -190,16 +275,51 @@ router.patch('/:id', async (req, res) => {
     }
 });
 
+/**
+ * @swagger
+ * /api/admin/users/{id}:
+ *   delete:
+ *     summary: Realiza borrado lógico de un usuario (cambia estado activo/inactivo)
+ *     tags: [Usuarios]
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID del usuario
+ *     responses:
+ *       200:
+ *         description: Estado del usuario cambiado exitosamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Success'
+ *       400:
+ *         description: Error en la solicitud
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
 router.delete('/:id', async (req, res) => {
     try {
         const users = await Users.findOne({ where: { id: req.params.id } });
 
         if (!users) return res.status(200).json([{ error: 'id not found' }]);
     
+        // Borrado lógico: cambiar estado entre activo (1) e inactivo (2)
         users.estado_Id = users.estado_Id === 1 ? 2 : 1;
         await users.save();
     
-        res.status(200).json([{ msg: 'ok' }]);
+        const action = users.estado_Id === 1 ? 'activated' : 'deactivated';
+        res.status(200).json([{ 
+            msg: 'ok', 
+            action: action,
+            newState: users.estado_Id 
+        }]);
     } catch (error) {
         console.log(error);
         return res.status(400).json([{ error: error.toString() }]);
