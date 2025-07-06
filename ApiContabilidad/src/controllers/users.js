@@ -247,11 +247,14 @@ router.post('/', async (req, res) => {
  *                 maxLength: 50
  *                 description: Nuevo nombre de usuario
  *               rol_Id:
- *                 type: string
- *                 description: Nuevo rol
+ *                 type: integer
+ *                 description: Nuevo rol (ID numérico)
  *               estado_Id:
  *                 type: integer
  *                 description: Nuevo estado
+ *               password:
+ *                 type: string
+ *                 description: Nueva contraseña (opcional)
  *     responses:
  *       200:
  *         description: Usuario actualizado exitosamente
@@ -268,13 +271,37 @@ router.post('/', async (req, res) => {
  */
 router.patch('/:id', async (req, res) => {
     try {
-        await Users.update(req.body, { where: { id: req.params.id } });
+        const updateData = { ...req.body };
+        
+        // Asegurar que rol_Id sea un número entero
+        if (updateData.rol_Id) {
+            updateData.rol_Id = parseInt(updateData.rol_Id);
+            
+            // Validar que el rol existe
+            const roleExists = await Roles.findOne({ where: { id: updateData.rol_Id } });
+            if (!roleExists) {
+                return res.status(400).json([{ error: 'Role not found' }]);
+            }
+        }
+        
+        // Si se incluye password, actualizar también la tabla de autorización
+        if (updateData.password) {
+            const passwordHash = createHash(updateData.password);
+            await PassAuthorization.update(
+                { hash: passwordHash },
+                { where: { usuario_Id: req.params.id } }
+            );
+            // Remover password de updateData ya que no se guarda en la tabla Users
+            delete updateData.password;
+        }
+        
+        await Users.update(updateData, { where: { id: req.params.id } });
         res.status(200).json([{ msg: 'ok' }]);
     } catch (error) {
+        console.error('Error updating user:', error);
         return res.status(400).json([{ error: error.toString() }]);
     }
 });
-
 /**
  * @swagger
  * /api/admin/users/{id}:

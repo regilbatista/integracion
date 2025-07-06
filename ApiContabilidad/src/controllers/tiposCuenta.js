@@ -1,42 +1,32 @@
 const router = require('express').Router();
-const { CatalogoCuentasContables, TiposCuenta } = require('../config/db/database');
+const { TiposCuenta, CatalogoCuentasContables } = require('../config/db/database');
 
 /**
  * @swagger
- * /api/admin/catalogoCuentas:
+ * /api/admin/tiposCuenta:
  *   get:
- *     summary: Obtiene todas las cuentas contables
- *     tags: [Catálogo de Cuentas]
+ *     summary: Obtiene todos los tipos de cuenta
+ *     tags: [Tipos de Cuenta]
  *     security:
  *       - cookieAuth: []
  *     responses:
  *       200:
- *         description: Lista de cuentas contables
+ *         description: Lista de tipos de cuenta
  *         content:
  *           application/json:
  *             schema:
  *               type: array
  *               items:
- *                 $ref: '#/components/schemas/CuentaContable'
+ *                 $ref: '#/components/schemas/TipoCuenta'
  */
 router.get('/', async (req, res) => {
     try {
-        let accounts = await CatalogoCuentasContables.findAll({
-            include: [
-                {
-                    model: TiposCuenta,
-                    attributes: ['descripcion', 'origen']
-                },
-                {
-                    model: CatalogoCuentasContables,
-                    as: 'CuentaMayor',
-                    attributes: ['descripcion']
-                }
-            ]
+        let accountTypes = await TiposCuenta.findAll({
+            //where: {} 
         });
-        accounts = JSON.parse(JSON.stringify(accounts));
+        accountTypes = JSON.parse(JSON.stringify(accountTypes));
 
-        return res.status(200).json(accounts);
+        return res.status(200).json(accountTypes);
     } catch (error) {
         console.log(error);
         return res.status(500).json([{ error: error.toString() }]);
@@ -45,83 +35,10 @@ router.get('/', async (req, res) => {
 
 /**
  * @swagger
- * /api/admin/catalogoCuentas/jerarquia:
+ * /api/admin/tiposCuenta/{id}:
  *   get:
- *     summary: Obtiene las cuentas con su jerarquía completa
- *     tags: [Catálogo de Cuentas]
- *     security:
- *       - cookieAuth: []
- *     responses:
- *       200:
- *         description: Cuentas organizadas jerárquicamente
- */
-router.get('/jerarquia', async (req, res) => {
-    try {
-        // Obtener cuentas principales (nivel 1)
-        const mainAccounts = await CatalogoCuentasContables.findAll({
-            where: { nivel: 1 },
-            include: [
-                {
-                    model: TiposCuenta,
-                    attributes: ['descripcion', 'origen']
-                },
-                {
-                    model: CatalogoCuentasContables,
-                    as: 'SubCuentas',
-                    include: [
-                        {
-                            model: CatalogoCuentasContables,
-                            as: 'SubCuentas'
-                        }
-                    ]
-                }
-            ]
-        });
-
-        return res.status(200).json(mainAccounts);
-    } catch (error) {
-        console.log(error);
-        return res.status(500).json([{ error: error.toString() }]);
-    }
-});
-
-/**
- * @swagger
- * /api/admin/catalogoCuentas/transacciones:
- *   get:
- *     summary: Obtiene solo las cuentas que permiten transacciones
- *     tags: [Catálogo de Cuentas]
- *     security:
- *       - cookieAuth: []
- *     responses:
- *       200:
- *         description: Cuentas que permiten transacciones
- */
-router.get('/transacciones', async (req, res) => {
-    try {
-        const transactionAccounts = await CatalogoCuentasContables.findAll({
-            where: { permiteTransacciones: true },
-            include: [
-                {
-                    model: TiposCuenta,
-                    attributes: ['descripcion', 'origen']
-                }
-            ]
-        });
-
-        return res.status(200).json(transactionAccounts);
-    } catch (error) {
-        console.log(error);
-        return res.status(500).json([{ error: error.toString() }]);
-    }
-});
-
-/**
- * @swagger
- * /api/admin/catalogoCuentas/{id}:
- *   get:
- *     summary: Obtiene una cuenta contable por ID
- *     tags: [Catálogo de Cuentas]
+ *     summary: Obtiene un tipo de cuenta por ID
+ *     tags: [Tipos de Cuenta]
  *     security:
  *       - cookieAuth: []
  *     parameters:
@@ -130,16 +47,16 @@ router.get('/transacciones', async (req, res) => {
  *         required: true
  *         schema:
  *           type: integer
- *         description: ID de la cuenta contable
+ *         description: ID del tipo de cuenta
  *     responses:
  *       200:
- *         description: Cuenta contable encontrada
+ *         description: Tipo de cuenta encontrado
  *         content:
  *           application/json:
  *             schema:
  *               type: array
  *               items:
- *                 $ref: '#/components/schemas/CuentaContable'
+ *                 $ref: '#/components/schemas/TipoCuenta'
  *       400:
  *         description: Error en la solicitud
  *         content:
@@ -149,23 +66,8 @@ router.get('/transacciones', async (req, res) => {
  */
 router.get('/:id', async (req, res) => {
     try {
-        const data = await CatalogoCuentasContables.findOne({
-            where: { id: req.params.id },
-            include: [
-                {
-                    model: TiposCuenta,
-                    attributes: ['descripcion', 'origen']
-                },
-                {
-                    model: CatalogoCuentasContables,
-                    as: 'CuentaMayor',
-                    attributes: ['descripcion']
-                },
-                {
-                    model: CatalogoCuentasContables,
-                    as: 'SubCuentas'
-                }
-            ]
+        const data = await TiposCuenta.findOne({
+            where: { id: req.params.id }
         });
 
         if (!data) return res.status(200).json({ data: 'data not found' });
@@ -178,10 +80,10 @@ router.get('/:id', async (req, res) => {
 
 /**
  * @swagger
- * /api/admin/catalogoCuentas:
+ * /api/admin/tiposCuenta:
  *   post:
- *     summary: Crea una nueva cuenta contable
- *     tags: [Catálogo de Cuentas]
+ *     summary: Crea un nuevo tipo de cuenta
+ *     tags: [Tipos de Cuenta]
  *     security:
  *       - cookieAuth: []
  *     requestBody:
@@ -192,60 +94,35 @@ router.get('/:id', async (req, res) => {
  *             type: object
  *             required:
  *               - descripcion
- *               - tipoCuenta_Id
- *               - permiteTransacciones
- *               - nivel
+ *               - origen
  *               - estado_Id
  *             properties:
  *               descripcion:
  *                 type: string
  *                 maxLength: 100
- *               tipoCuenta_Id:
- *                 type: integer
- *               permiteTransacciones:
- *                 type: boolean
- *               nivel:
- *                 type: integer
- *                 minimum: 1
- *                 maximum: 3
- *               cuentaMayor_Id:
- *                 type: integer
- *               balance:
- *                 type: number
- *                 format: decimal
+ *               origen:
+ *                 type: string
+ *                 enum: [DB, CR]
  *               estado_Id:
  *                 type: integer
  *     responses:
  *       200:
- *         description: Cuenta contable creada exitosamente
+ *         description: Tipo de cuenta creado exitosamente
  */
 router.post('/', async (req, res) => {
     try {
-        const { descripcion, tipoCuenta_Id, permiteTransacciones, nivel, cuentaMayor_Id, balance, estado_Id } = req.body;
+        const { descripcion, origen, estado_Id } = req.body;
 
-        if (!descripcion || !tipoCuenta_Id || permiteTransacciones === undefined || !nivel || !estado_Id) {
+        if (!descripcion || !origen || !estado_Id) {
             return res.status(400).json([{ error: 'Missing required fields' }]);
         }
 
-        // Validar que el nivel esté entre 1 y 3
-        if (nivel < 1 || nivel > 3) {
-            return res.status(400).json([{ error: 'Level must be between 1 and 3' }]);
+        // Validar que el origen sea DB o CR
+        if (!['DB', 'CR'].includes(origen)) {
+            return res.status(400).json([{ error: 'Origin must be DB or CR' }]);
         }
 
-        // Si es nivel 2 o 3, debe tener cuenta mayor
-        if (nivel > 1 && !cuentaMayor_Id) {
-            return res.status(400).json([{ error: 'Parent account required for level 2 and 3' }]);
-        }
-
-        const data = await CatalogoCuentasContables.create({ 
-            descripcion, 
-            tipoCuenta_Id, 
-            permiteTransacciones, 
-            nivel, 
-            cuentaMayor_Id, 
-            balance: balance || 0,
-            estado_Id 
-        });
+        const data = await TiposCuenta.create({ descripcion, origen, estado_Id });
 
         return res.status(200).json([{ id: data.id }]);
     } catch (error) {
@@ -255,10 +132,10 @@ router.post('/', async (req, res) => {
 
 /**
  * @swagger
- * /api/admin/catalogoCuentas/{id}:
+ * /api/admin/tiposCuenta/{id}:
  *   patch:
- *     summary: Actualiza una cuenta contable
- *     tags: [Catálogo de Cuentas]
+ *     summary: Actualiza un tipo de cuenta
+ *     tags: [Tipos de Cuenta]
  *     security:
  *       - cookieAuth: []
  *     parameters:
@@ -267,7 +144,7 @@ router.post('/', async (req, res) => {
  *         required: true
  *         schema:
  *           type: integer
- *         description: ID de la cuenta contable a actualizar
+ *         description: ID del tipo de cuenta a actualizar
  *     requestBody:
  *       required: true
  *       content:
@@ -278,31 +155,17 @@ router.post('/', async (req, res) => {
  *               descripcion:
  *                 type: string
  *                 maxLength: 100
- *                 description: Nueva descripción de la cuenta
- *               tipoCuenta_Id:
- *                 type: integer
- *                 description: Nuevo tipo de cuenta
- *               permiteTransacciones:
- *                 type: boolean
- *                 description: Si permite transacciones
- *               nivel:
- *                 type: integer
- *                 minimum: 1
- *                 maximum: 3
- *                 description: Nuevo nivel jerárquico
- *               cuentaMayor_Id:
- *                 type: integer
- *                 description: Nueva cuenta padre
- *               balance:
- *                 type: number
- *                 format: decimal
- *                 description: Nuevo balance
+ *                 description: Nueva descripción del tipo de cuenta
+ *               origen:
+ *                 type: string
+ *                 enum: [DB, CR]
+ *                 description: Nuevo origen (Débito o Crédito)
  *               estado_Id:
  *                 type: integer
  *                 description: Nuevo estado
  *     responses:
  *       200:
- *         description: Cuenta contable actualizada exitosamente
+ *         description: Tipo de cuenta actualizado exitosamente
  *         content:
  *           application/json:
  *             schema:
@@ -316,22 +179,12 @@ router.post('/', async (req, res) => {
  */
 router.patch('/:id', async (req, res) => {
     try {
-        // Validaciones adicionales si se actualiza el nivel
-        if (req.body.nivel) {
-            if (req.body.nivel < 1 || req.body.nivel > 3) {
-                return res.status(400).json([{ error: 'Level must be between 1 and 3' }]);
-            }
-
-            // Si cambia a nivel 2 o 3, debe tener cuenta mayor
-            if (req.body.nivel > 1 && !req.body.cuentaMayor_Id) {
-                const currentAccount = await CatalogoCuentasContables.findOne({ where: { id: req.params.id } });
-                if (!currentAccount || !currentAccount.cuentaMayor_Id) {
-                    return res.status(400).json([{ error: 'Parent account required for level 2 and 3' }]);
-                }
-            }
+        // Validar origen si se está actualizando
+        if (req.body.origen && !['DB', 'CR'].includes(req.body.origen)) {
+            return res.status(400).json([{ error: 'Origin must be DB or CR' }]);
         }
 
-        await CatalogoCuentasContables.update(req.body, { where: { id: req.params.id } });
+        await TiposCuenta.update(req.body, { where: { id: req.params.id } });
         res.status(200).json([{ msg: 'ok' }]);
     } catch (error) {
         return res.status(400).json([{ error: error.toString() }]);
@@ -340,10 +193,10 @@ router.patch('/:id', async (req, res) => {
 
 /**
  * @swagger
- * /api/admin/catalogoCuentas/{id}:
+ * /api/admin/tiposCuenta/{id}:
  *   delete:
- *     summary: Realiza borrado lógico de una cuenta contable (cambia estado activo/inactivo)
- *     tags: [Catálogo de Cuentas]
+ *     summary: Realiza borrado lógico de un tipo de cuenta (cambia estado activo/inactivo)
+ *     tags: [Tipos de Cuenta]
  *     security:
  *       - cookieAuth: []
  *     parameters:
@@ -352,10 +205,10 @@ router.patch('/:id', async (req, res) => {
  *         required: true
  *         schema:
  *           type: integer
- *         description: ID de la cuenta contable
+ *         description: ID del tipo de cuenta
  *     responses:
  *       200:
- *         description: Estado de la cuenta contable cambiado exitosamente
+ *         description: Estado del tipo de cuenta cambiado exitosamente
  *         content:
  *           application/json:
  *             schema:
@@ -369,32 +222,43 @@ router.patch('/:id', async (req, res) => {
  */
 router.delete('/:id', async (req, res) => {
     try {
-        const account = await CatalogoCuentasContables.findOne({ where: { id: req.params.id } });
+        console.log('Attempting to delete account type with ID:', req.params.id);
+        
+        const accountType = await TiposCuenta.findOne({ where: { id: req.params.id } });
 
-        if (!account) return res.status(200).json([{ error: 'id not found' }]);
+        if (!accountType) {
+            console.log('Account type not found');
+            return res.status(200).json([{ error: 'id not found' }]);
+        }
 
-        // Verificar si tiene subcuentas activas antes de desactivar
-        if (account.estado_Id === 1) {
-            const hasSubAccounts = await CatalogoCuentasContables.findOne({ 
-                where: { cuentaMayor_Id: req.params.id, estado_Id: 1 } 
+        console.log('Current account type state:', accountType.estado_Id);
+
+        // Verificar si tiene cuentas contables asociadas activas antes de desactivar
+        if (accountType.estado_Id === 1) {
+            const hasActiveAccounts = await CatalogoCuentasContables.findOne({ 
+                where: { tipoCuenta_Id: req.params.id, estado_Id: 1 } 
             });
 
-            if (hasSubAccounts) {
-                return res.status(400).json([{ error: 'Cannot deactivate: account has active sub-accounts' }]);
+            if (hasActiveAccounts) {
+                console.log('Cannot deactivate: has active accounts');
+                return res.status(400).json([{ error: 'Cannot deactivate: account type has active accounts associated' }]);
             }
         }
 
         // Borrado lógico: cambiar estado entre activo (1) e inactivo (2)
-        account.estado_Id = account.estado_Id === 1 ? 2 : 1;
-        await account.save();
+        accountType.estado_Id = accountType.estado_Id === 1 ? 2 : 1;
+        await accountType.save();
 
-        const action = account.estado_Id === 1 ? 'activated' : 'deactivated';
+        const action = accountType.estado_Id === 1 ? 'activated' : 'deactivated';
+        console.log('Account type', action, 'successfully');
+        
         res.status(200).json([{ 
             msg: 'ok', 
             action: action,
-            newState: account.estado_Id 
+            newState: accountType.estado_Id 
         }]);
     } catch (error) {
+        console.error('Delete error:', error);
         return res.status(400).json([{ error: error.toString() }]);
     }
 });

@@ -1,6 +1,6 @@
 const router = require('express').Router();
 const { verifyAuthorization } = require('../middlewares/verify');
-
+const { createWebServiceLogger } = require('../middlewares/webServiceLogger');
 /**
  * @swagger
  * tags:
@@ -21,6 +21,9 @@ const { verifyAuthorization } = require('../middlewares/verify');
  *   - name: Logs Web Services
  *     description: Auditoría de servicios web
  */
+
+const webServiceLogger = createWebServiceLogger();
+router.use(webServiceLogger);
 
 // Import new accounting controllers
 const tiposCuenta = require('../controllers/tiposCuenta');

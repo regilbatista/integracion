@@ -6,53 +6,192 @@ const { Op } = require('sequelize');
  * @swagger
  * /api/admin/logsWebServices:
  *   get:
- *     summary: Obtiene todos los logs de web services
+ *     summary: Obtiene todos los logs de web services (generados automáticamente)
  *     tags: [Logs Web Services]
  *     security:
  *       - cookieAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 100
+ *         description: Límite de registros a retornar
+ *       - in: query
+ *         name: offset
+ *         schema:
+ *           type: integer
+ *           default: 0
+ *         description: Número de registros a omitir
  *     responses:
  *       200:
  *         description: Lista de logs de web services
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 type: object
- *                 properties:
- *                   id:
- *                     type: integer
- *                   webService_Id:
- *                     type: integer
- *                   usuario_Id:
- *                     type: integer
- *                   fechaHora:
- *                     type: string
- *                     format: date-time
- *                   parametrosEnviados:
- *                     type: string
- *                   respuesta:
- *                     type: string
  */
 router.get('/', async (req, res) => {
     try {
+        const { limit = 100, offset = 0 } = req.query;
+        
         let logs = await LogsWebServices.findAll({
             include: [
                 {
                     model: WebServices,
-                    attributes: ['nombre', 'descripcion']
+                    attributes: ['nombre', 'descripcion', 'url', 'metodo']
                 },
                 {
                     model: Users,
-                    attributes: ['usuario']
+                    attributes: ['usuario'],
+                    required: false // LEFT JOIN para permitir logs sin usuario
                 }
             ],
             order: [['fechaHora', 'DESC']],
-            limit: 100 // Limitar para evitar demasiados registros
+            limit: parseInt(limit),
+            offset: parseInt(offset)
         });
+        
         logs = JSON.parse(JSON.stringify(logs));
-
         return res.status(200).json(logs);
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json([{ error: error.toString() }]);
+    }
+});
+
+/**
+ * @swagger
+ * /api/admin/logsWebServices/stats:
+ *   get:
+ *     summary: Obtiene estadísticas de uso de web services
+ *     tags: [Logs Web Services]
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: dias
+ *         schema:
+ *           type: integer
+ *           default: 7
+ *         description: Número de días hacia atrás para calcular estadísticas
+ *     responses:
+ *       200:
+ *         description: Estadísticas de uso
+ */
+router.get('/stats', async (req, res) => {
+    try {
+        const { dias = 7 } = req.query;
+        const fechaInicio = new Date();
+        fechaInicio.setDate(fechaInicio.getDate() - parseInt(dias));
+
+        // Estadísticas generales
+        const totalLogs = await LogsWebServices.count({
+            where: {
+                fechaHora: {
+                    [Op.gte]: fechaInicio
+                }
+            }
+        });
+
+        // Logs por web service
+        const logsPorServicio = await LogsWebServices.findAll({
+            attributes: [
+                'webService_Id',
+                [LogsWebServices.sequelize.fn('COUNT', LogsWebServices.sequelize.col('id')), 'total']
+            ],
+            include: [
+                {
+                    model: WebServices,
+                    attributes: ['nombre', 'url', 'metodo']
+                }
+            ],
+            where: {
+                fechaHora: {
+                    [Op.gte]: fechaInicio
+                }
+            },
+            group: ['webService_Id', 'WebService.id'],
+            order: [[LogsWebServices.sequelize.literal('total'), 'DESC']]
+        });
+
+        // Logs por usuario (top 10)
+        const logsPorUsuario = await LogsWebServices.findAll({
+            attributes: [
+                'usuario_Id',
+                [LogsWebServices.sequelize.fn('COUNT', LogsWebServices.sequelize.col('LogsWebServices.id')), 'total']
+            ],
+            include: [
+                {
+                    model: Users,
+                    attributes: ['usuario'],
+                    required: false
+                }
+            ],
+            where: {
+                fechaHora: {
+                    [Op.gte]: fechaInicio
+                },
+                usuario_Id: {
+                    [Op.not]: null
+                }
+            },
+            group: ['usuario_Id', 'User.id'],
+            order: [[LogsWebServices.sequelize.literal('total'), 'DESC']],
+            limit: 10
+        });
+
+        // Logs por día
+        const logsPorDia = await LogsWebServices.findAll({
+            attributes: [
+                [LogsWebServices.sequelize.fn('DATE', LogsWebServices.sequelize.col('fechaHora')), 'fecha'],
+                [LogsWebServices.sequelize.fn('COUNT', LogsWebServices.sequelize.col('id')), 'total']
+            ],
+            where: {
+                fechaHora: {
+                    [Op.gte]: fechaInicio
+                }
+            },
+            group: [LogsWebServices.sequelize.fn('DATE', LogsWebServices.sequelize.col('fechaHora'))],
+            order: [[LogsWebServices.sequelize.literal('fecha'), 'ASC']]
+        });
+
+        // Errores recientes (si tienes el campo statusCode)
+        let erroresRecientes = [];
+        try {
+            erroresRecientes = await LogsWebServices.findAll({
+                where: {
+                    fechaHora: {
+                        [Op.gte]: fechaInicio
+                    },
+                    statusCode: {
+                        [Op.gte]: 400
+                    }
+                },
+                include: [
+                    {
+                        model: WebServices,
+                        attributes: ['nombre', 'url']
+                    },
+                    {
+                        model: Users,
+                        attributes: ['usuario'],
+                        required: false
+                    }
+                ],
+                order: [['fechaHora', 'DESC']],
+                limit: 20
+            });
+        } catch (error) {
+            // Si no existe el campo statusCode, ignorar
+            console.log('Campo statusCode no disponible');
+        }
+
+        return res.status(200).json({
+            totalLogs,
+            diasAnalizados: parseInt(dias),
+            logsPorServicio: JSON.parse(JSON.stringify(logsPorServicio)),
+            logsPorUsuario: JSON.parse(JSON.stringify(logsPorUsuario)),
+            logsPorDia: JSON.parse(JSON.stringify(logsPorDia)),
+            erroresRecientes: JSON.parse(JSON.stringify(erroresRecientes))
+        });
+
     } catch (error) {
         console.log(error);
         return res.status(500).json([{ error: error.toString() }]);
@@ -74,18 +213,25 @@ router.get('/', async (req, res) => {
  *         schema:
  *           type: integer
  *         description: ID del usuario
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 50
  *     responses:
  *       200:
  *         description: Logs del usuario
  */
 router.get('/usuario/:userId', async (req, res) => {
     try {
+        const { limit = 50 } = req.query;
+        
         const logs = await LogsWebServices.findAll({
             where: { usuario_Id: req.params.userId },
             include: [
                 {
                     model: WebServices,
-                    attributes: ['nombre', 'descripcion']
+                    attributes: ['nombre', 'descripcion', 'url', 'metodo']
                 },
                 {
                     model: Users,
@@ -93,7 +239,7 @@ router.get('/usuario/:userId', async (req, res) => {
                 }
             ],
             order: [['fechaHora', 'DESC']],
-            limit: 50
+            limit: parseInt(limit)
         });
 
         return res.status(200).json(logs);
@@ -118,26 +264,34 @@ router.get('/usuario/:userId', async (req, res) => {
  *         schema:
  *           type: integer
  *         description: ID del web service
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 50
  *     responses:
  *       200:
  *         description: Logs del web service
  */
 router.get('/servicio/:serviceId', async (req, res) => {
     try {
+        const { limit = 50 } = req.query;
+        
         const logs = await LogsWebServices.findAll({
             where: { webService_Id: req.params.serviceId },
             include: [
                 {
                     model: WebServices,
-                    attributes: ['nombre', 'descripcion']
+                    attributes: ['nombre', 'descripcion', 'url', 'metodo']
                 },
                 {
                     model: Users,
-                    attributes: ['usuario']
+                    attributes: ['usuario'],
+                    required: false
                 }
             ],
             order: [['fechaHora', 'DESC']],
-            limit: 50
+            limit: parseInt(limit)
         });
 
         return res.status(200).json(logs);
@@ -162,40 +316,50 @@ router.get('/servicio/:serviceId', async (req, res) => {
  *         schema:
  *           type: string
  *           format: date
- *         description: Fecha de inicio del período
  *       - in: query
  *         name: fechaFin
  *         required: true
  *         schema:
  *           type: string
  *           format: date
- *         description: Fecha de fin del período
+ *       - in: query
+ *         name: webServiceId
+ *         schema:
+ *           type: integer
+ *         description: Filtrar por web service específico
  *     responses:
  *       200:
  *         description: Logs del período
  */
 router.get('/periodo', async (req, res) => {
     try {
-        const { fechaInicio, fechaFin } = req.query;
+        const { fechaInicio, fechaFin, webServiceId } = req.query;
 
         if (!fechaInicio || !fechaFin) {
-            return res.status(400).json([{ error: 'Start date and end date are required' }]);
+            return res.status(400).json([{ error: 'fechaInicio and fechaFin are required' }]);
+        }
+
+        const whereClause = {
+            fechaHora: {
+                [Op.between]: [fechaInicio, fechaFin]
+            }
+        };
+
+        if (webServiceId) {
+            whereClause.webService_Id = webServiceId;
         }
 
         const logs = await LogsWebServices.findAll({
-            where: {
-                fechaHora: {
-                    [Op.between]: [fechaInicio, fechaFin]
-                }
-            },
+            where: whereClause,
             include: [
                 {
                     model: WebServices,
-                    attributes: ['nombre', 'descripcion']
+                    attributes: ['nombre', 'descripcion', 'url', 'metodo']
                 },
                 {
                     model: Users,
-                    attributes: ['usuario']
+                    attributes: ['usuario'],
+                    required: false
                 }
             ],
             order: [['fechaHora', 'DESC']]
@@ -226,32 +390,6 @@ router.get('/periodo', async (req, res) => {
  *     responses:
  *       200:
  *         description: Log encontrado
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 type: object
- *                 properties:
- *                   id:
- *                     type: integer
- *                   webService_Id:
- *                     type: integer
- *                   usuario_Id:
- *                     type: integer
- *                   fechaHora:
- *                     type: string
- *                     format: date-time
- *                   parametrosEnviados:
- *                     type: string
- *                   respuesta:
- *                     type: string
- *       400:
- *         description: Error en la solicitud
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
  */
 router.get('/:id', async (req, res) => {
     try {
@@ -260,16 +398,17 @@ router.get('/:id', async (req, res) => {
             include: [
                 {
                     model: WebServices,
-                    attributes: ['nombre', 'descripcion']
+                    attributes: ['nombre', 'descripcion', 'url', 'metodo']
                 },
                 {
                     model: Users,
-                    attributes: ['usuario']
+                    attributes: ['usuario'],
+                    required: false
                 }
             ]
         });
 
-        if (!data) return res.status(200).json({ data: 'data not found' });
+        if (!data) return res.status(404).json({ error: 'Log not found' });
         return res.status(200).json([data]);
 
     } catch (error) {
@@ -279,148 +418,64 @@ router.get('/:id', async (req, res) => {
 
 /**
  * @swagger
- * /api/admin/logsWebServices:
- *   post:
- *     summary: Crea un nuevo log de web service
+ * /api/admin/logsWebServices/cleanup:
+ *   delete:
+ *     summary: Limpia logs antiguos (más de X días)
  *     tags: [Logs Web Services]
  *     security:
  *       - cookieAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - webService_Id
- *               - usuario_Id
- *             properties:
- *               webService_Id:
- *                 type: integer
- *               usuario_Id:
- *                 type: integer
- *               parametrosEnviados:
- *                 type: string
- *               respuesta:
- *                 type: string
+ *     parameters:
+ *       - in: query
+ *         name: dias
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Eliminar logs más antiguos que este número de días
  *     responses:
  *       200:
- *         description: Log creado exitosamente
+ *         description: Logs eliminados exitosamente
  */
-router.post('/', async (req, res) => {
+router.delete('/cleanup', async (req, res) => {
     try {
-        const { webService_Id, usuario_Id, parametrosEnviados, respuesta } = req.body;
+        const { dias } = req.query;
 
-        if (!webService_Id || !usuario_Id) {
-            return res.status(400).json([{ error: 'Missing required fields' }]);
+        if (!dias || dias < 1) {
+            return res.status(400).json([{ error: 'Debe especificar un número válido de días' }]);
         }
 
-        // Verificar que el web service existe
-        const webService = await WebServices.findOne({ where: { id: webService_Id } });
-        if (!webService) {
-            return res.status(400).json([{ error: 'Web service not found' }]);
-        }
+        const fechaLimite = new Date();
+        fechaLimite.setDate(fechaLimite.getDate() - parseInt(dias));
 
-        // Verificar que el usuario existe
-        const user = await Users.findOne({ where: { id: usuario_Id } });
-        if (!user) {
-            return res.status(400).json([{ error: 'User not found' }]);
-        }
-
-        const data = await LogsWebServices.create({ 
-            webService_Id, 
-            usuario_Id, 
-            parametrosEnviados, 
-            respuesta 
+        const deletedCount = await LogsWebServices.destroy({
+            where: {
+                fechaHora: {
+                    [Op.lt]: fechaLimite
+                }
+            }
         });
 
-        return res.status(200).json([{ id: data.id }]);
+        res.status(200).json([{ 
+            msg: 'Cleanup completed',
+            deletedRecords: deletedCount,
+            cutoffDate: fechaLimite.toISOString()
+        }]);
     } catch (error) {
         return res.status(400).json([{ error: error.toString() }]);
     }
 });
 
 /**
- * @swagger
- * /api/admin/logsWebServices/{id}:
- *   patch:
- *     summary: Actualiza un log de web service
- *     tags: [Logs Web Services]
- *     security:
- *       - cookieAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: integer
- *         description: ID del log a actualizar
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               webService_Id:
- *                 type: integer
- *                 description: Nuevo web service
- *               usuario_Id:
- *                 type: integer
- *                 description: Nuevo usuario
- *               parametrosEnviados:
- *                 type: string
- *                 description: Nuevos parámetros enviados
- *               respuesta:
- *                 type: string
- *                 description: Nueva respuesta
- *     responses:
- *       200:
- *         description: Log actualizado exitosamente
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Success'
- *       400:
- *         description: Error en la solicitud
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
+ * NOTA: Los métodos POST, PATCH y DELETE han sido removidos
+ * porque los logs ahora se generan automáticamente por el middleware.
+ * 
+ * Solo mantenemos el DELETE para cleanup/mantenimiento.
  */
-router.patch('/:id', async (req, res) => {
-    try {
-        // Nota: Los logs generalmente no se actualizan por temas de auditoría
-        // Este endpoint se incluye por completitud del CRUD, pero considerar restricciones
-
-        // Validar web service si se está cambiando
-        if (req.body.webService_Id) {
-            const webService = await WebServices.findOne({ where: { id: req.body.webService_Id } });
-            if (!webService) {
-                return res.status(400).json([{ error: 'Web service not found' }]);
-            }
-        }
-
-        // Validar usuario si se está cambiando
-        if (req.body.usuario_Id) {
-            const user = await Users.findOne({ where: { id: req.body.usuario_Id } });
-            if (!user) {
-                return res.status(400).json([{ error: 'User not found' }]);
-            }
-        }
-
-        await LogsWebServices.update(req.body, { where: { id: req.params.id } });
-        res.status(200).json([{ msg: 'ok' }]);
-    } catch (error) {
-        return res.status(400).json([{ error: error.toString() }]);
-    }
-});
 
 /**
  * @swagger
  * /api/admin/logsWebServices/{id}:
  *   delete:
- *     summary: Elimina físicamente un log de web service
+ *     summary: Elimina un log específico por ID
  *     tags: [Logs Web Services]
  *     security:
  *       - cookieAuth: []
@@ -430,35 +485,27 @@ router.patch('/:id', async (req, res) => {
  *         required: true
  *         schema:
  *           type: integer
- *         description: ID del log
+ *         description: ID del log a eliminar
  *     responses:
  *       200:
  *         description: Log eliminado exitosamente
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Success'
- *       400:
- *         description: Error en la solicitud
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
+ *       404:
+ *         description: Log no encontrado
  */
 router.delete('/:id', async (req, res) => {
     try {
         const log = await LogsWebServices.findOne({ where: { id: req.params.id } });
 
-        if (!log) return res.status(200).json([{ error: 'id not found' }]);
+        if (!log) {
+            return res.status(404).json([{ error: 'Log not found' }]);
+        }
 
-        // Nota: Los logs se eliminan físicamente, no lógicamente
-        // por temas de espacio y auditoría (se mantienen por período determinado)
         await log.destroy();
 
         res.status(200).json([{ 
-            msg: 'ok', 
+            msg: 'Log deleted successfully',
             action: 'deleted',
-            note: 'Log permanently removed from database'
+            id: req.params.id
         }]);
     } catch (error) {
         return res.status(400).json([{ error: error.toString() }]);

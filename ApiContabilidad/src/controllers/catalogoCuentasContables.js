@@ -369,32 +369,50 @@ router.patch('/:id', async (req, res) => {
  */
 router.delete('/:id', async (req, res) => {
     try {
+        //console.log('Attempting to delete account with ID:', req.params.id);
+        
         const account = await CatalogoCuentasContables.findOne({ where: { id: req.params.id } });
 
-        if (!account) return res.status(200).json([{ error: 'id not found' }]);
+        if (!account) {
+            console.log('Account not found');
+            return res.status(200).json([{ error: 'id not found' }]);
+        }
+
+        //console.log('Current account state:', account.estado_Id);
 
         // Verificar si tiene subcuentas activas antes de desactivar
         if (account.estado_Id === 1) {
-            const hasSubAccounts = await CatalogoCuentasContables.findOne({ 
+            const activeSubAccounts = await CatalogoCuentasContables.findAll({ 
                 where: { cuentaMayor_Id: req.params.id, estado_Id: 1 } 
             });
 
-            if (hasSubAccounts) {
-                return res.status(400).json([{ error: 'Cannot deactivate: account has active sub-accounts' }]);
+            if (activeSubAccounts.length > 0) {
+                console.log('Cannot deactivate: has active sub-accounts', activeSubAccounts.length);
+                return res.status(400).json([{ 
+                    error: 'Cannot deactivate: account has active sub-accounts',
+                    activeSubAccountsCount: activeSubAccounts.length,
+                    suggestion: 'Please deactivate the sub-accounts first'
+                }]);
             }
         }
 
+
         // Borrado lógico: cambiar estado entre activo (1) e inactivo (2)
+        const previousState = account.estado_Id;
         account.estado_Id = account.estado_Id === 1 ? 2 : 1;
         await account.save();
 
         const action = account.estado_Id === 1 ? 'activated' : 'deactivated';
+        console.log('Account', action, 'successfully');
+        
         res.status(200).json([{ 
             msg: 'ok', 
             action: action,
-            newState: account.estado_Id 
+            newState: account.estado_Id,
+            previousState: previousState
         }]);
     } catch (error) {
+        console.error('Delete error:', error);
         return res.status(400).json([{ error: error.toString() }]);
     }
 });

@@ -9,44 +9,40 @@ import { DataTable, DataTableSortStatus } from 'mantine-datatable';
 import {showMessage, showConfirm} from '@/utils/notifications';
 import {formatDateTime} from '@/utils/utilities';
 import { apiGet, apiDelete } from '@/lib/api/admin';
-import SaveUsersModal from '@/components/pages/users/saveUsersModal';
+import SaveAuxiliaresModal from '@/components/pages/auxiliares/saveAuxiliaresModal';
 
-const PATH = 'users';
+const PATH = 'auxiliares';
 
-const usersDefault = {
+const auxiliaresDefault = {
     id: null,
-    usuario: '', // Cambiado de 'user' a 'usuario' según el endpoint
-    password: '',
-    confirmPassword: '',
-    rol_Id: '',
+    nombre: '', // Corregido: el endpoint usa 'nombre' no 'descripcion'
     estado_Id: 1,
 };
 
-const Users = () => {
+const Auxiliares = () => {
 
     useEffect(() => {
-        fetchUsers();
+        fetchAuxiliares();
     },[]);
 
-    const fetchUsers = async () => {
-        const response = await apiGet({ path: 'users' });
+    const fetchAuxiliares = async () => {
+        const response = await apiGet({ path: 'auxiliares' });
         setInitialRecords(sortBy(response?.info, 'id'))
     }
 
     const dispatch = useDispatch();
     useEffect(() => {
-        dispatch(setPageTitle('Gestión de Usuarios'));
+        dispatch(setPageTitle('Gestión de Auxiliares'));
     });
     const isRtl = useSelector((state: IRootState) => state.themeConfig.rtlClass) === 'rtl' ? true : false;
 
     const [page, setPage] = useState(1);
     const PAGE_SIZES = [10, 20, 30, 50, 100];
-    const [saveParams, setSaveParams] = useState<any>(JSON.parse(JSON.stringify(usersDefault)));
+    const [saveParams, setSaveParams] = useState<any>(JSON.parse(JSON.stringify(auxiliaresDefault)));
     const [pageSize, setPageSize] = useState(PAGE_SIZES[0]);
     const [initialRecords, setInitialRecords] = useState<any>([]);
     const [recordsData, setRecordsData] = useState<any>(initialRecords);
-    const [addUsersModal, setAddUsersModal] = useState<any>(false);
-    const [isEdit, setIsEdit] = useState<any>(false);
+    const [addAuxiliaresModal, setAddAuxiliaresModal] = useState<any>(false);
     const [search, setSearch] = useState('');
     const [sortStatus, setSortStatus] = useState<DataTableSortStatus>({
         columnAccessor: 'id',
@@ -67,8 +63,7 @@ const Users = () => {
         setRecordsData(() => {
             return initialRecords.filter((item: any) => {
                 return (
-                    item.usuario?.toString().toLowerCase().includes(search.toLowerCase()) ||
-                    item.rol_Id?.toString().toLowerCase().includes(search.toLowerCase())
+                    item.nombre?.toString().toLowerCase().includes(search.toLowerCase())
                 );
             });
         });
@@ -82,37 +77,26 @@ const Users = () => {
 
     const addEditData = (row: any = null) => {
         if (row) {
-            setIsEdit(true);
-            // Crear una copia para edición sin incluir datos sensibles
-            const editData = {
-                id: row.id,
-                usuario: row.usuario,
-                rol_Id: row.rol_Id,
-                estado_Id: row.estado_Id,
-                password: '',
-                confirmPassword: ''
-            };
-            setSaveParams(editData);
+            setSaveParams(row);
         } else {
-            setIsEdit(false);
-            setSaveParams(JSON.parse(JSON.stringify(usersDefault)));
+            setSaveParams(JSON.parse(JSON.stringify(auxiliaresDefault)));
         }
-        setAddUsersModal(true);
+        setAddAuxiliaresModal(true);
     };
 
     const deleteItem = async (row: any) => {
-        const resp = await apiDelete({ path: 'users', data: saveParams, id: row.id });
+        const resp = await apiDelete({ path: 'auxiliares', data: saveParams, id: row.id });
         let message = {};
 
         if (resp.info[0]?.msg !== 'ok') {
-            message = { msg: 'Error al cambiar estado del usuario', type: 'error' };
+            message = { msg: 'Error al cambiar estado del auxiliar', type: 'error' };
         } else {
             const action = resp.info[0]?.action || 'updated';
             message = { 
-                msg: action === 'activated' ? 'Usuario activado' : 'Usuario desactivado',
+                msg: action === 'activated' ? 'Auxiliar activado' : 'Auxiliar desactivado',
                 type: 'success'
             };
-            fetchUsers();
+            fetchAuxiliares();
         }
 
         showMessage(message);
@@ -122,20 +106,20 @@ const Users = () => {
         <>
             <div className="panel">
                 <div className="mb-5 flex flex-col gap-5 md:flex-row md:items-center">
-                    <h5 className="text-lg font-semibold dark:text-white-light">Gestión de Usuarios</h5>
+                    <h5 className="text-lg font-semibold dark:text-white-light">Gestión de Auxiliares</h5>
                     <div className="flex w-full flex-col items-center gap-5 md:w-auto md:flex-row ltr:ml-auto rtl:mr-auto">
                         <div className="flex w-full flex-col gap-5 md:w-auto md:flex-row md:items-center">
                             <button type="button" 
                                 onClick={() => addEditData()} 
                                 className="btn btn-primary" >
                                     <i className="fa-solid fa-plus mr-2"></i>
-                                    Añadir Usuario
+                                    Añadir Auxiliar
                             </button>
                         </div>
                         <input 
                             type="text" 
                             className="form-input w-auto" 
-                            placeholder="Buscar usuario o rol..." 
+                            placeholder="Buscar auxiliar..." 
                             value={search} 
                             onChange={(e) => setSearch(e.target.value)} 
                         />
@@ -148,17 +132,7 @@ const Users = () => {
                         records={recordsData}
                         columns={[
                             { accessor: 'id', title: 'ID', sortable: true },
-                            { accessor: 'usuario', title: 'Usuario', sortable: true },
-                            { 
-                                accessor: 'rol_Id', 
-                                title: 'Rol', 
-                                sortable: true,
-                                render: ({ rol_Id }) => (
-                                    <div className={`badge ${rol_Id === 'admin' ? 'bg-red-500' : 'bg-blue-500'} text-white rounded-full px-3 py-1 flex justify-center items-center`}>
-                                        {rol_Id}
-                                    </div>
-                                )
-                            },
+                            { accessor: 'nombre', title: 'Nombre', sortable: true },
                             {
                                 accessor: 'estado_Id',
                                 title: 'Estado',
@@ -190,7 +164,7 @@ const Users = () => {
                                             onClick={() => {
                                                 addEditData(row);
                                             }}
-                                            title="Editar usuario"
+                                            title="Editar auxiliar"
                                         >
                                             <i className="fa-solid fa-pencil text-white"></i>
                                         </button>
@@ -199,7 +173,7 @@ const Users = () => {
                                             onClick={() => {
                                                 row.estado_Id === 1 ? showConfirm(() => deleteItem(row)) : deleteItem(row);
                                             }}
-                                            title={row.estado_Id === 1 ? 'Desactivar usuario' : 'Activar usuario'}
+                                            title={row.estado_Id === 1 ? 'Desactivar auxiliar' : 'Activar auxiliar'}
                                         >
                                             <i className={`${row.estado_Id === 1 ? 'fa-regular fa-trash-can' : 'fa-solid fa-check'} text-white`}></i>
                                         </button>
@@ -216,22 +190,20 @@ const Users = () => {
                         sortStatus={sortStatus}
                         onSortStatusChange={setSortStatus}
                         minHeight={200}
-                        paginationText={({ from, to, totalRecords }) => `Mostrando ${from} a ${to} de ${totalRecords} usuarios`}
+                        paginationText={({ from, to, totalRecords }) => `Mostrando ${from} a ${to} de ${totalRecords} auxiliares`}
                     />
                 </div>
             </div>
-            <SaveUsersModal
-                addUsersModal={addUsersModal}
-                setAddUsersModal={setAddUsersModal}
+            <SaveAuxiliaresModal
+                addAuxiliaresModal={addAuxiliaresModal}
+                setAddAuxiliaresModal={setAddAuxiliaresModal}
                 saveParams={saveParams}
                 setSaveParams={setSaveParams}
-                fetchUsers={fetchUsers}
-                usersDefault={usersDefault}
-                isEdit={isEdit}
-                setIsEdit={setIsEdit}
+                fetchAuxiliares={fetchAuxiliares}
+                auxiliaresDefault={auxiliaresDefault}
             />
         </>
     );
 };
 
-export default Users;
+export default Auxiliares;

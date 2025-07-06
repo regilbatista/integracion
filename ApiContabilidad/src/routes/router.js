@@ -1,6 +1,9 @@
 const router = require('express').Router();
 const { verifyAuthorization } = require('../middlewares/verify');
+const { createWebServiceLogger } = require('../middlewares/webServiceLogger');
 
+const webServiceLogger = createWebServiceLogger();
+router.use(webServiceLogger);
 /**
  * @swagger
  * tags:
