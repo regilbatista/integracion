@@ -5,7 +5,6 @@ const { LogsWebServices, WebServices } = require('../config/db/database');
  */
 const createWebServiceLogger = () => {
     // Mapeo de rutas a IDs de web services
-    // Debes configurar estos IDs según tu tabla WebServices
     const routeToWebServiceMap = {
         // Rutas de usuario (solo lectura)
         'GET:/api/catalogoCuentas': 1,
@@ -23,20 +22,45 @@ const createWebServiceLogger = () => {
         'DELETE:/api/admin/catalogoCuentas': 11,
         'GET:/api/admin/entradasContables': 12,
         'POST:/api/admin/entradasContables': 13,
+        'GET:/api/admin/tiposCuenta': 14,
+        'POST:/api/admin/tiposCuenta': 15,
+        'PATCH:/api/admin/tiposCuenta': 16,
+        'DELETE:/api/admin/tiposCuenta': 17,
+        'GET:/api/admin/tiposMoneda': 18,
+        'POST:/api/admin/tiposMoneda': 19,
+        'PATCH:/api/admin/tiposMoneda': 20,
+        'DELETE:/api/admin/tiposMoneda': 21,
+        'GET:/api/admin/auxiliares': 22,
+        'POST:/api/admin/auxiliares': 23,
+        'PATCH:/api/admin/auxiliares': 24,
+        'DELETE:/api/admin/auxiliares': 25,
+        'GET:/api/admin/logsWebServices': 26,
         
         // Agrega más mapeos según tus necesidades
     };
 
     return async (req, res, next) => {
         try {
-            // Construir la clave de ruta
-            const routeKey = `${req.method}:${req.baseUrl}${req.route?.path || ''}`;
+            // Construir la clave de ruta - CORREGIDO
+            let routePath = req.baseUrl || '';
+            if (req.route && req.route.path) {
+                routePath += req.route.path;
+            } else {
+                routePath += req.path || '';
+            }
+            
+            const routeKey = `${req.method}:${routePath}`;
+            console.log('🔍 Route key:', routeKey); // Debug
+            
             const webServiceId = routeToWebServiceMap[routeKey];
 
             // Si no hay mapeo para esta ruta, continuar sin logging
             if (!webServiceId) {
+                console.log('⚠️ No mapping found for route:', routeKey);
                 return next();
             }
+
+            console.log('✅ Found mapping for route:', routeKey, '-> WebService ID:', webServiceId);
 
             // Verificar que el web service existe
             const webService = await WebServices.findByPk(webServiceId);
@@ -91,10 +115,15 @@ const createWebServiceLogger = () => {
                     const endTime = Date.now();
                     const duration = endTime - startTime;
 
+                    // Obtener usuario desde res.locals (establecido por verifyToken)
+                    const userId = res.locals.user ? res.locals.user.id : null;
+                    
+                    console.log('📝 Creating log entry for user:', userId, 'webService:', webServiceId);
+
                     // Preparar datos del log
                     const logData = {
                         webService_Id: webServiceId,
-                        usuario_Id: req.user?.id || null,
+                        usuario_Id: userId,
                         fechaHora: new Date(),
                         parametrosEnviados: parametrosEnviados,
                         respuesta: responseData ? JSON.stringify(responseData).substring(0, 10000) : null, // Limitar a 10KB
@@ -109,14 +138,15 @@ const createWebServiceLogger = () => {
                     }
 
                     await LogsWebServices.create(logData);
+                    console.log('✅ Log created successfully');
 
                 } catch (error) {
-                    console.error('Error al crear log de web service:', error);
+                    console.error('❌ Error al crear log de web service:', error);
                 }
             });
 
         } catch (error) {
-            console.error('Error en middleware de logging:', error);
+            console.error('❌ Error en middleware de logging:', error);
             next(); // Continuar aunque falle el logging
         }
     };

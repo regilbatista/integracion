@@ -2,14 +2,16 @@ const router = require('express').Router();
 const { verifyAuthorization } = require('../middlewares/verify');
 const { createWebServiceLogger } = require('../middlewares/webServiceLogger');
 
-const webServiceLogger = createWebServiceLogger();
-router.use(webServiceLogger);
 /**
  * @swagger
  * tags:
  *   - name: Consultas Contables
  *     description: Consultas del sistema contable para usuarios
  */
+
+// APLICAR EL MIDDLEWARE DE LOGGING AQUÍ (DESPUÉS DE VERIFICAR TOKEN PERO ANTES DE LAS RUTAS)
+const webServiceLogger = createWebServiceLogger();
+router.use(webServiceLogger);
 
 // Import accounting controllers for user access (read-only)
 const catalogoCuentasContables = require('../controllers/catalogoCuentasContables');

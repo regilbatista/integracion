@@ -62,10 +62,91 @@ module.exports = InitializePrimalData = async ({ Md }) => {
         { id: 4, nombre: 'GASTOS VARIOS', estado_Id: 1 },
     ];
 
+
+     // SEED COMPLETO PARA WEB SERVICES - ACTUALIZADO CON TODAS LAS RUTAS
     let webServicesData = [
-        { id: 1, nombre: 'API_CONTABILIDAD', descripcion: 'Servicio para operaciones contables' },
-        { id: 2, nombre: 'API_REPORTES', descripcion: 'Servicio para generación de reportes' },
-        { id: 3, nombre: 'API_FACTURACION', descripcion: 'Servicio para facturación electrónica' },
+        // === RUTAS DE USUARIOS (SOLO LECTURA) ===
+        { id: 1, nombre: 'GET_CATALOGO_CUENTAS_USER', descripcion: 'Consulta catálogo de cuentas - Usuario' },
+        { id: 2, nombre: 'GET_AUXILIARES_USER', descripcion: 'Consulta auxiliares - Usuario' },
+        { id: 3, nombre: 'GET_ENTRADAS_CONTABLES_USER', descripcion: 'Consulta entradas contables - Usuario' },
+        
+        // === GESTIÓN DE USUARIOS ===
+        { id: 4, nombre: 'GET_USERS_ADMIN', descripcion: 'Consultar usuarios - Admin' },
+        { id: 5, nombre: 'POST_USERS_ADMIN', descripcion: 'Crear usuario - Admin' },
+        
+        // === GESTIÓN DE WEB SERVICES ===
+        { id: 6, nombre: 'GET_WEBSERVICES_ADMIN', descripcion: 'Consultar web services - Admin' },
+        { id: 7, nombre: 'POST_WEBSERVICES_ADMIN', descripcion: 'Crear web service - Admin' },
+        
+        // === CATÁLOGO DE CUENTAS CONTABLES - ADMIN ===
+        { id: 8, nombre: 'GET_CATALOGO_CUENTAS_ADMIN', descripcion: 'Consultar catálogo de cuentas - Admin' },
+        { id: 9, nombre: 'POST_CATALOGO_CUENTAS_ADMIN', descripcion: 'Crear cuenta contable - Admin' },
+        { id: 10, nombre: 'PATCH_CATALOGO_CUENTAS_ADMIN', descripcion: 'Actualizar cuenta contable - Admin' },
+        { id: 11, nombre: 'DELETE_CATALOGO_CUENTAS_ADMIN', descripcion: 'Eliminar cuenta contable - Admin' },
+        
+        // === ENTRADAS CONTABLES - ADMIN ===
+        { id: 12, nombre: 'GET_ENTRADAS_CONTABLES_ADMIN', descripcion: 'Consultar entradas contables - Admin' },
+        { id: 13, nombre: 'POST_ENTRADAS_CONTABLES_ADMIN', descripcion: 'Crear entrada contable - Admin' },
+        
+        // === TIPOS DE CUENTA ===
+        { id: 14, nombre: 'GET_TIPOS_CUENTA_ADMIN', descripcion: 'Consultar tipos de cuenta - Admin' },
+        { id: 15, nombre: 'POST_TIPOS_CUENTA_ADMIN', descripcion: 'Crear tipo de cuenta - Admin' },
+        { id: 16, nombre: 'PATCH_TIPOS_CUENTA_ADMIN', descripcion: 'Actualizar tipo de cuenta - Admin' },
+        { id: 17, nombre: 'DELETE_TIPOS_CUENTA_ADMIN', descripcion: 'Eliminar tipo de cuenta - Admin' },
+        
+        // === TIPOS DE MONEDA ===
+        { id: 18, nombre: 'GET_TIPOS_MONEDA_ADMIN', descripcion: 'Consultar tipos de moneda - Admin' },
+        { id: 19, nombre: 'POST_TIPOS_MONEDA_ADMIN', descripcion: 'Crear tipo de moneda - Admin' },
+        { id: 20, nombre: 'PATCH_TIPOS_MONEDA_ADMIN', descripcion: 'Actualizar tipo de moneda - Admin' },
+        { id: 21, nombre: 'DELETE_TIPOS_MONEDA_ADMIN', descripcion: 'Eliminar tipo de moneda - Admin' },
+        
+        // === AUXILIARES ===
+        { id: 22, nombre: 'GET_AUXILIARES_ADMIN', descripcion: 'Consultar auxiliares - Admin' },
+        { id: 23, nombre: 'POST_AUXILIARES_ADMIN', descripcion: 'Crear auxiliar - Admin' },
+        { id: 24, nombre: 'PATCH_AUXILIARES_ADMIN', descripcion: 'Actualizar auxiliar - Admin' },
+        { id: 25, nombre: 'DELETE_AUXILIARES_ADMIN', descripcion: 'Eliminar auxiliar - Admin' },
+        
+        // === LOGS WEB SERVICES ===
+        { id: 26, nombre: 'GET_LOGS_WEBSERVICES_ADMIN', descripcion: 'Consultar logs de web services - Admin' },
+        
+        // === RUTAS ADICIONALES ESPECÍFICAS POR ID ===
+        { id: 27, nombre: 'GET_CATALOGO_CUENTAS_BY_ID_ADMIN', descripcion: 'Consultar cuenta contable por ID - Admin' },
+        { id: 28, nombre: 'GET_TIPOS_CUENTA_BY_ID_ADMIN', descripcion: 'Consultar tipo de cuenta por ID - Admin' },
+        { id: 29, nombre: 'GET_TIPOS_MONEDA_BY_ID_ADMIN', descripcion: 'Consultar tipo de moneda por ID - Admin' },
+        { id: 30, nombre: 'GET_AUXILIARES_BY_ID_ADMIN', descripcion: 'Consultar auxiliar por ID - Admin' },
+        { id: 31, nombre: 'GET_USERS_BY_ID_ADMIN', descripcion: 'Consultar usuario por ID - Admin' },
+        { id: 32, nombre: 'GET_ENTRADAS_CONTABLES_BY_ID_ADMIN', descripcion: 'Consultar entrada contable por ID - Admin' },
+        
+        // === RUTAS ESPECIALES DE ENTRADAS CONTABLES ===
+        { id: 33, nombre: 'GET_ENTRADAS_BALANCES_ADMIN', descripcion: 'Consultar balances de cuentas - Admin' },
+        { id: 34, nombre: 'GET_ENTRADAS_PERIODO_ADMIN', descripcion: 'Consultar entradas por período - Admin' },
+        
+        // === RUTAS ESPECIALES DE CATÁLOGO ===
+        { id: 35, nombre: 'GET_CATALOGO_JERARQUIA_ADMIN', descripcion: 'Consultar jerarquía de cuentas - Admin' },
+        { id: 36, nombre: 'GET_CATALOGO_TRANSACCIONES_ADMIN', descripcion: 'Consultar cuentas que permiten transacciones - Admin' },
+        
+        // === RUTAS ESPECIALES DE LOGS ===
+        { id: 37, nombre: 'GET_LOGS_STATS_ADMIN', descripcion: 'Consultar estadísticas de logs - Admin' },
+        { id: 38, nombre: 'GET_LOGS_BY_USER_ADMIN', descripcion: 'Consultar logs por usuario - Admin' },
+        { id: 39, nombre: 'GET_LOGS_BY_SERVICE_ADMIN', descripcion: 'Consultar logs por servicio - Admin' },
+        { id: 40, nombre: 'GET_LOGS_PERIODO_ADMIN', descripcion: 'Consultar logs por período - Admin' },
+        
+        // === OPERACIONES ADICIONALES ===
+        { id: 41, nombre: 'PATCH_ENTRADAS_CONTABLES_ADMIN', descripcion: 'Actualizar entrada contable - Admin' },
+        { id: 42, nombre: 'DELETE_ENTRADAS_CONTABLES_ADMIN', descripcion: 'Eliminar entrada contable - Admin' },
+        { id: 43, nombre: 'PATCH_USERS_ADMIN', descripcion: 'Actualizar usuario - Admin' },
+        { id: 44, nombre: 'DELETE_USERS_ADMIN', descripcion: 'Eliminar usuario - Admin' },
+        { id: 45, nombre: 'GET_USERS_ROLES_ADMIN', descripcion: 'Consultar roles disponibles - Admin' },
+        
+        // === WEB SERVICES MANAGEMENT ===
+        { id: 46, nombre: 'GET_WEBSERVICES_BY_ID_ADMIN', descripcion: 'Consultar web service por ID - Admin' },
+        { id: 47, nombre: 'PATCH_WEBSERVICES_ADMIN', descripcion: 'Actualizar web service - Admin' },
+        { id: 48, nombre: 'DELETE_WEBSERVICES_ADMIN', descripcion: 'Eliminar web service - Admin' },
+        
+        // === LOGS MANAGEMENT ===
+        { id: 49, nombre: 'GET_LOGS_BY_ID_ADMIN', descripcion: 'Consultar log por ID - Admin' },
+        { id: 50, nombre: 'DELETE_LOGS_CLEANUP_ADMIN', descripcion: 'Limpiar logs antiguos - Admin' },
+        { id: 51, nombre: 'DELETE_LOGS_BY_ID_ADMIN', descripcion: 'Eliminar log específico - Admin' },
     ];
 
     // Datos de autorización de contraseña (123456)

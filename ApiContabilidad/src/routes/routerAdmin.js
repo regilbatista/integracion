@@ -1,6 +1,7 @@
 const router = require('express').Router();
 const { verifyAuthorization } = require('../middlewares/verify');
 const { createWebServiceLogger } = require('../middlewares/webServiceLogger');
+
 /**
  * @swagger
  * tags:
@@ -22,6 +23,7 @@ const { createWebServiceLogger } = require('../middlewares/webServiceLogger');
  *     description: Auditoría de servicios web
  */
 
+// APLICAR EL MIDDLEWARE DE LOGGING AQUÍ (DESPUÉS DE VERIFICAR TOKEN PERO ANTES DE LAS RUTAS)
 const webServiceLogger = createWebServiceLogger();
 router.use(webServiceLogger);
 
