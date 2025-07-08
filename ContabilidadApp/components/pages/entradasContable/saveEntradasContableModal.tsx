@@ -3,7 +3,7 @@ import { Dialog, Transition } from '@headlessui/react';
 import { errorValidation } from '@/utils/utilities';
 import AsyncSelect from 'react-select/async';
 import {showMessage} from '@/utils/notifications'
-import { apiGet, apiPost, apiPatch } from '@/lib/api/admin';
+import { apiGet, apiPost, apiPatch } from '@/lib/api/main';
 
 const selectDefault: {
     value: number;

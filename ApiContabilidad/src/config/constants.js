@@ -1,8 +1,8 @@
 const db = {
     dBName: process.env.DBNAME || 'contabilidad_api',
-    host: process.env.DBHOST,
-    user: process.env.DBUSER,
-    pass: process.env.DBPASS,
+    host: process.env.DBHOST ||'sqlserver',
+    user: process.env.DBUSER ||'sa',
+    pass: process.env.DBPASS || 'hola1234!',
 };
 
 const tk = {

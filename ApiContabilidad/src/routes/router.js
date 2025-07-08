@@ -15,12 +15,10 @@ router.use(webServiceLogger);
 
 // Import accounting controllers for user access (read-only)
 const catalogoCuentasContables = require('../controllers/catalogoCuentasContables');
-const auxiliares = require('../controllers/auxiliares');
 const entradasContables = require('../controllers/entradasContables');
 
 // Accounting routes (read-only access for regular users)
 router.use('/catalogoCuentas/', catalogoCuentasContables);
-router.use('/auxiliares/', auxiliares);
 router.use('/entradasContables/', entradasContables);
 
 module.exports = router;

@@ -30,9 +30,8 @@ router.use(webServiceLogger);
 // Import new accounting controllers
 const tiposCuenta = require('../controllers/tiposCuenta');
 const tiposMoneda = require('../controllers/tiposMoneda');
-const catalogoCuentasContables = require('../controllers/catalogoCuentasContables');
 const auxiliares = require('../controllers/auxiliares');
-const entradasContables = require('../controllers/entradasContables');
+
 const webServices = require('../controllers/webServices');
 const logsWebServices = require('../controllers/logsWebServices');
 const users = require('../controllers/users');
@@ -46,11 +45,11 @@ router.use('/tiposCuenta/', tiposCuenta);
 router.use('/tiposMoneda/', tiposMoneda);
 router.use('/auxiliares/', auxiliares);
 
-// Chart of accounts management
-router.use('/catalogoCuentas/', catalogoCuentasContables);
+// // Chart of accounts management
+// router.use('/catalogoCuentas/', catalogoCuentasContables);
 
-// Accounting entries and transactions
-router.use('/entradasContables/', entradasContables);
+// // Accounting entries and transactions
+// router.use('/entradasContables/', entradasContables);
 
 // Web services and audit logs
 router.use('/webServices/', webServices);

@@ -8,7 +8,7 @@ import { setPageTitle } from '../../../store/themeConfigSlice';
 import { DataTable, DataTableSortStatus } from 'mantine-datatable';
 import {showMessage, showConfirm} from '@/utils/notifications';
 import {formatDateTime} from '@/utils/utilities';
-import { apiGet, apiDelete } from '@/lib/api/admin';
+import { apiGet, apiDelete } from '@/lib/api/main';
 import SaveCatalogoCuentaContablesModal from '@/components/pages/catalogoCuentaContables/saveCatalogoCuentaContablesModal';
 
 const PATH = 'catalogoCuentas';
@@ -97,7 +97,7 @@ const CatalogoCuentasContables = () => {
         let message = {};
         
         // Verificar si hay error en la respuesta
-        if (resp.error || resp.status === 400) {
+        if ( resp.status === 400) {
             // El error está en resp.error.response.data
             const errorData = resp.error?.response?.data;
             

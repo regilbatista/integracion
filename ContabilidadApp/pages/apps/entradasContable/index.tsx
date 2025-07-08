@@ -8,7 +8,7 @@ import { setPageTitle } from '../../../store/themeConfigSlice';
 import { DataTable, DataTableSortStatus } from 'mantine-datatable';
 import {showMessage, showConfirm} from '@/utils/notifications';
 import {formatDateTime} from '@/utils/utilities';
-import { apiGet, apiDelete } from '@/lib/api/admin';
+import { apiGet, apiDelete } from '@/lib/api/main';
 import SaveEntradasContableModal from '@/components/pages/entradasContable/saveEntradasContableModal';
 
 const PATH = 'entradasContables';
