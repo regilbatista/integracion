@@ -4,6 +4,7 @@ import { errorValidation } from '@/utils/utilities';
 import AsyncSelect from 'react-select/async';
 import {showMessage} from '@/utils/notifications'
 import { apiGet, apiPost, apiPatch } from '@/lib/api/main';
+import { apiGet as getData } from '@/lib/api/admin';
 
 const selectDefault: {
     value: number;
@@ -31,7 +32,7 @@ const SaveCatalogoCuentaContablesModal = (props: any) => {
 
     const loadTiposCuenta = async () => {
         try {
-            const response = await apiGet({ path: 'tiposCuenta' });
+            const response = await getData({ path: 'tiposCuenta' });
             if (response?.info) {
                 allTiposCuenta.current = response.info.filter((tipo: any) => tipo.estado_Id === 1);
                 const tiposFormatted = allTiposCuenta.current.map((item: any) => ({

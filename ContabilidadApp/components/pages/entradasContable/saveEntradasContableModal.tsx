@@ -4,6 +4,7 @@ import { errorValidation } from '@/utils/utilities';
 import AsyncSelect from 'react-select/async';
 import {showMessage} from '@/utils/notifications'
 import { apiGet, apiPost, apiPatch } from '@/lib/api/main';
+import { apiGet as getData } from '@/lib/api/admin';
 
 const selectDefault: {
     value: number;
@@ -55,7 +56,7 @@ const SaveEntradasContableModal = (props: any) => {
 
     const loadAuxiliares = async () => {
         try {
-            const response = await apiGet({ path: 'auxiliares' });
+            const response = await getData({ path: 'auxiliares' });
             if (response?.info) {
                 allAuxiliares.current = response.info.filter((aux: any) => aux.estado_Id === 1);
                 const auxiliaresFormatted = allAuxiliares.current.map((item: any) => ({
