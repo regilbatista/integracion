@@ -10,7 +10,7 @@ export default function VehiculosMasRentados() {
     series: [{ name: "Rentas", data: [] }],
     options: {
       chart: {
-        type: "bar",
+        type: "bar" as const,
         height: 300,
       },
       plotOptions: {

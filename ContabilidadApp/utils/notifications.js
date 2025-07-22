@@ -15,11 +15,13 @@ export const showMessage = ({ msg = '', type = 'success' }) => {
     });
 };
 
-export const showConfirm = async (deleteFuntion) => {
+export const showConfirm = async (deleteFuntion, customMessage) => {
+    const defaultMessage = "You will be unable to use this until you activate it again!";
+
     Swal.fire({
         icon: 'warning',
         title: 'Are you sure?',
-        text: "You will be unable to use this until you activate it again!",
+        text: customMessage || defaultMessage,
         showCancelButton: true,
         confirmButtonText: 'Yes',
         padding: '2em',

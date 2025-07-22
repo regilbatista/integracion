@@ -9,6 +9,7 @@ import { DataTable, DataTableSortStatus } from 'mantine-datatable';
 import {showMessage, showConfirm} from '@/utils/notifications';
 import {formatDateTime} from '@/utils/utilities';
 import { apiGet, apiDelete } from '@/lib/api/main';
+import VehiculosMasRentados from '@/components/pages/mostrent/mostrent';
 
 
 
@@ -27,7 +28,7 @@ const MostRent = () => {
             <>
                
                     <VehiculosMasRentados/>
-                </div>
+                
             </>
         );
  

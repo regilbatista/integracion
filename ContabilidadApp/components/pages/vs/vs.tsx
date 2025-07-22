@@ -8,7 +8,7 @@ const PieChart = () => {
         series: [],
         options: {
             chart: {
-                type: "pie",
+                type: "pie" as const,
                 height: 300,
             },
             labels: [],
@@ -24,7 +24,7 @@ const PieChart = () => {
                 },
             ],
             legend: {
-                position: "bottom",
+                position: "bottom" as "bottom",
             },
         },
     });
@@ -36,10 +36,10 @@ const PieChart = () => {
                 const data = await response.json();
 
                 setPieChart({
-                    series: data.map((item) => item.cantidad_rentas),
+                    series: data.map((item: any) => item.cantidad_rentas),
                     options: {
                         ...pieChart.options,
-                        labels: data.map((item) => item.nombre_vehiculo || `Vehículo ${item.vehiculo_Id}`),
+                        labels: data.map((item: any) => item.nombre_vehiculo || `Vehículo ${item.vehiculo_Id}`),
                     },
                 });
             } catch (error) {
