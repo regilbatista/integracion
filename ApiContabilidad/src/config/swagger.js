@@ -208,6 +208,80 @@ const options = {
             },
           },
         },
+         // NUEVOS ESQUEMAS PARA API KEYS
+        ApiKeyResponse: {
+          type: 'object',
+          properties: {
+            success: {
+              type: 'boolean',
+              description: 'Indica si la operación fue exitosa'
+            },
+            data: {
+              type: 'object',
+              description: 'Datos de respuesta'
+            },
+            meta: {
+              type: 'object',
+              properties: {
+                total: { 
+                  type: 'integer',
+                  description: 'Total de registros'
+                },
+                apiKey: { 
+                  type: 'string',
+                  description: 'Nombre de la API Key utilizada'
+                },
+                sistemaOrigen: { 
+                  type: 'string',
+                  description: 'Sistema que realizó la petición'
+                }
+              }
+            }
+          }
+        },
+        ApiKeyCreate: {
+          type: 'object',
+          required: ['nombre', 'permisos'],
+          properties: {
+            nombre: {
+              type: 'string',
+              maxLength: 100,
+              description: 'Nombre descriptivo de la API Key'
+            },
+            descripcion: {
+              type: 'string',
+              maxLength: 255,
+              description: 'Descripción del propósito'
+            },
+            sistemaOrigen: {
+              type: 'string',
+              maxLength: 100,
+              description: 'Sistema que usará la key'
+            },
+            permisos: {
+              type: 'array',
+              items: { type: 'string' },
+              example: ['GET:/api/public/catalogo-cuentas', 'POST:/api/public/entradas-contables'],
+              description: 'Lista de permisos de endpoint'
+            },
+            ipPermitidas: {
+              type: 'array',
+              items: { type: 'string' },
+              example: ['192.168.1.100', '10.0.0.50'],
+              description: 'IPs permitidas (opcional)'
+            },
+            limitePorMinuto: {
+              type: 'integer',
+              default: 60,
+              description: 'Límite de requests por minuto'
+            },
+            fechaVencimiento: {
+              type: 'string',
+              format: 'date',
+              description: 'Fecha de vencimiento (opcional)'
+            }
+          }
+        },
       },
     },
     security: [

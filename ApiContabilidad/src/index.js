@@ -6,6 +6,8 @@ const { app, server } = require('./config/socket.js');
 const routerAuth = require('./routes/routerAuth');
 const routerAdmin = require('./routes/routerAdmin');
 const router = require('./routes/router.js');
+const publicApiRoutes = require('./routes/publicRoutes');
+const apiKeysController = require('./controllers/apiKeys.js');
 
 // Importar configuración de Swagger
 const swagger = require('./config/swagger.js');
@@ -47,6 +49,7 @@ app.use(
             'Access-Control-Allow-Methods',
             'Access-Control-Allow-Headers',
             'cache-control',
+            'X-API-Key',
         ],
         preflightContinue: false,
     })
@@ -58,8 +61,12 @@ app.use(express.urlencoded({ extended: false }));
 // Apply token verification middleware at a higher level
 // Router -- API Versions
 app.use('/api/', routerAuth);
+app.use('/api/public', publicApiRoutes); // Rutas públicas con API Key
 app.use('/api/admin',verifyToken, routerAdmin);
 app.use('/api/', verifyToken, router);
+// NUEVAS RUTAS PARA API KEYS
+app.use('/api/admin/apiKeys', verifyToken, apiKeysController); // Gestión de API Keys
+
 
 // Server
 server.listen(app.get('port'), () => {

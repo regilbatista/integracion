@@ -155,7 +155,47 @@ module.exports = InitializePrimalData = async ({ Md }) => {
         { id: 2, usuario_Id: 2, hash: '3ba4ecb6657ee75f2fe6.58808fd15dbad40491b26eae51c9eeca', newPass: false, estado_Id: 1 },
     ];
 
+    let apiKeysData = [
+        {
+            id: 1,
+            nombre: 'Sistema Facturación Principal',
+            keyHash: '6c7c3a1e8b5c77a9b8d3c5f4e2a9b6c8d1e5f7a4b9c2d6e8f3a7b1c4d9e5f2a8b3c6d7e1f4a9b2c5d8e3f6a1b4c7d2e5f8a3b6c9d4e7f1a5b8c2d6e9f3a7b1c4d8e5f2a9b3c6d7e4f1a8b5c2d9e6f3a7b4c1d8e5f2a9b6c3d7e4f1a8b5c9d2e6f3a7b4c1d8e5f9a2b6c3d7e4f1a8b5c2d9e6f3a7b4c1d8e5f2a9b6c3d7e4f1a8', // Este es un hash de ejemplo - se generará automáticamente
+            keyPrefix: 'ak_live_...',
+            descripcion: 'API Key para el sistema de facturación principal',
+            sistemaOrigen: 'FacturacionApp v2.1',
+            permisos: JSON.stringify([
+                'GET:/api/public/catalogo-cuentas',
+                'GET:/api/public/entradas-contables',
+                'POST:/api/public/entradas-contables',
+                'GET:/api/public/balances'
+            ]),
+            ipPermitidas: JSON.stringify(['192.168.1.100', '10.0.0.50']),
+            limitePorMinuto: 120,
+            fechaVencimiento: null,
+            usosCount: 0,
+            estado_Id: 1,
+            creadoPor_Id: 1
+        },
+        {
+            id: 2,
+            nombre: 'Sistema de Reportes',
+            keyHash: 'a1b2c3d4e5f6a7b8c9d1e2f3a4b5c6d7e8f9a1b2c3d4e5f6a7b8c9d1e2f3a4b5c6d7e8f9a1b2c3d4e5f6a7b8c9d1e2f3a4b5c6d7e8f9a1b2c3d4e5f6a7b8c9d1e2f3a4b5c6d7e8f9a1b2c3d4e5f6a7b8c9d1e2f3a4b5c6d7e8f9a1b2c3d4e5f6a7b8c9d1e2f3a4b5c6d7e8f9a1b2c3d4e5f6a7b8c9d1e2f3a4b5c6d7e8f9a1b2c3d4e5f6', // Hash de ejemplo
+            keyPrefix: 'ak_live_...',
+            descripcion: 'API Key para sistema de reportes (solo lectura)',
+            sistemaOrigen: 'ReportingSystem',
+            permisos: JSON.stringify([
+                'GET:/api/public/*'
+            ]),
+            ipPermitidas: null, // Sin restricción de IP
+            limitePorMinuto: 60,
+            fechaVencimiento: null,
+            usosCount: 0,
+            estado_Id: 1,
+            creadoPor_Id: 1
+        }
+    ];
 
+    await insertDb(Md.ApiKeys, 'apiKeysData', apiKeysData);
     await insertDb(Md.Estados, 'estadoData', estadoData);
     await insertDb(Md.Roles, 'rolesData', rolesData);
     await insertDb(Md.Users, 'usersData', usersData);

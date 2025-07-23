@@ -13,7 +13,8 @@ module.exports = InitializeModels = ({ Sequelize, sequelize }) => {
     const WebServicesModel = require('../../models/webServices');
     const EstadosModel = require('../../models/estados');
 
-
+    const ApiKeysModel = require('../../models/apiKeys');
+    const ApiKeyLogsModel = require('../../models/apiKeyLogs')
 
     // Initialization instance of models
     const Auxiliares = AuxiliaresModel(sequelize, Sequelize.DataTypes);
@@ -27,6 +28,9 @@ module.exports = InitializeModels = ({ Sequelize, sequelize }) => {
     const Users = UsersModel(sequelize, Sequelize.DataTypes);
     const WebServices = WebServicesModel(sequelize, Sequelize.DataTypes);
     const Estados = EstadosModel(sequelize, Sequelize.DataTypes);
+    // NUEVAS INSTANCIAS
+    const ApiKeys = ApiKeysModel(sequelize, Sequelize.DataTypes);
+    const ApiKeyLogs = ApiKeyLogsModel(sequelize, Sequelize.DataTypes);
     return {
         Auxiliares,
         CatalogoCuentasContables,
@@ -38,6 +42,9 @@ module.exports = InitializeModels = ({ Sequelize, sequelize }) => {
         TiposMoneda,
         Users, 
         WebServices,
-        Estados
+        Estados,
+        ApiKeys,
+        ApiKeyLogs
+
     };
 };

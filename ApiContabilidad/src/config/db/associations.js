@@ -11,6 +11,8 @@ module.exports = NewAssociations = (Models) => {
     TiposCuenta,
     TiposMoneda,
     WebServices,
+    ApiKeys,
+    ApiKeyLogs,
   } = Models;
 
   /* =============================================== */
@@ -86,4 +88,17 @@ module.exports = NewAssociations = (Models) => {
   /* Relaciones entre Users y Estados */
   Users.belongsTo(Estados, { foreignKey: "estado_Id" });
   Estados.hasMany(Users, { foreignKey: "estado_Id" });
+
+  // *** NUEVAS ASOCIACIONES PARA API KEYS ***
+  
+  /* Relaciones para API Keys */
+  ApiKeys.belongsTo(Users, { foreignKey: "creadoPor_Id", as: "CreatedBy" });
+  Users.hasMany(ApiKeys, { foreignKey: "creadoPor_Id" });
+
+  ApiKeys.belongsTo(Estados, { foreignKey: "estado_Id" });
+  Estados.hasMany(ApiKeys, { foreignKey: "estado_Id" });
+
+  /* Relaciones para API Key Logs */
+  ApiKeyLogs.belongsTo(ApiKeys, { foreignKey: "apiKey_Id" });
+  ApiKeys.hasMany(ApiKeyLogs, { foreignKey: "apiKey_Id" });
 };
